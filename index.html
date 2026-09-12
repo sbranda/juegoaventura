@@ -64,13 +64,39 @@
     background: none; border: none; color: #eae6d8; opacity: 0.6;
     font-size: 18px; cursor: pointer; padding: 0 4px;
   }
+  #touch-controls {
+    position: fixed; inset: 0; display: none; z-index: 15;
+  }
+  #look-zone {
+    position: absolute; right: 0; top: 0; width: 60%; height: 100%;
+  }
+  #joystick-zone {
+    position: absolute; left: 0; top: 0; width: 40%; height: 100%;
+  }
+  #joystick-base {
+    position: absolute; width: 100px; height: 100px; border-radius: 50%;
+    background: rgba(234,230,216,0.12); border: 1px solid rgba(234,230,216,0.35);
+    display: none;
+  }
+  #joystick-stick {
+    position: absolute; width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(234,230,216,0.4); left: 28px; top: 28px;
+    pointer-events: none;
+  }
+  #interact-btn {
+    position: absolute; right: 24px; bottom: 90px; width: 64px; height: 64px;
+    border-radius: 50%; background: rgba(234,230,216,0.15);
+    border: 1px solid rgba(234,230,216,0.4); color: #eae6d8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; z-index: 16;
+  }
 </style>
 </head>
 <body>
 
 <div id="start-screen">
   <h2>Túnel 1930</h2>
-  <p>WASD para moverte, mouse para mirar, click para empezar.<br>E para interactuar.</p>
+  <p>Desktop: WASD para moverte, mouse para mirar, E para interactuar.<br>Mobile: joystick a la izquierda, arrastrá a la derecha para mirar.</p>
   <button id="start-btn">Entrar al túnel</button>
 </div>
 
@@ -82,6 +108,14 @@
     <button id="install-btn" style="display:none;">Instalar</button>
     <button id="install-dismiss">✕</button>
   </div>
+</div>
+
+<div id="touch-controls">
+  <div id="joystick-zone">
+    <div id="joystick-base"><div id="joystick-stick"></div></div>
+  </div>
+  <div id="look-zone"></div>
+  <button id="interact-btn">E</button>
 </div>
 
 <div id="hud">
@@ -151,10 +185,19 @@
   window.addEventListener('keydown', e => keys[e.code] = true);
   window.addEventListener('keyup', e => keys[e.code] = false);
 
+  // Input de movimiento normalizado (-1..1), viene de WASD o del joystick táctil
+  const moveInput = { x: 0, y: 0 };
+
+  const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
   let pointerLocked = false;
   document.getElementById('start-btn').addEventListener('click', () => {
     document.getElementById('start-screen').style.display = 'none';
-    canvas.requestPointerLock();
+    if (isTouchDevice) {
+      document.getElementById('touch-controls').style.display = 'block';
+    } else {
+      canvas.requestPointerLock();
+    }
   });
   document.addEventListener('pointerlockchange', () => {
     pointerLocked = document.pointerLockElement === canvas;
@@ -167,13 +210,89 @@
   let currentTarget = null;
   const promptEl = document.getElementById('prompt');
 
-  window.addEventListener('keydown', e => {
-    if (e.code === 'KeyE' && currentTarget) {
+  function tryInteract() {
+    if (currentTarget) {
       currentTarget.taken = true;
       currentTarget = null;
       promptEl.style.display = 'none';
     }
+  }
+  window.addEventListener('keydown', e => {
+    if (e.code === 'KeyE') tryInteract();
   });
+  document.getElementById('interact-btn').addEventListener('touchstart', e => {
+    e.preventDefault();
+    tryInteract();
+  });
+
+  // ---------- Joystick virtual (movimiento) ----------
+  const joyZone = document.getElementById('joystick-zone');
+  const joyBase = document.getElementById('joystick-base');
+  const joyStick = document.getElementById('joystick-stick');
+  let joyTouchId = null;
+  const joyRadius = 50;
+
+  joyZone.addEventListener('touchstart', e => {
+    const t = e.changedTouches[0];
+    joyTouchId = t.identifier;
+    joyBase.style.display = 'block';
+    joyBase.style.left = (t.clientX - joyRadius) + 'px';
+    joyBase.style.top = (t.clientY - joyRadius) + 'px';
+    joyBase.dataset.cx = t.clientX;
+    joyBase.dataset.cy = t.clientY;
+  });
+  joyZone.addEventListener('touchmove', e => {
+    for (const t of e.changedTouches) {
+      if (t.identifier !== joyTouchId) continue;
+      const cx = parseFloat(joyBase.dataset.cx), cy = parseFloat(joyBase.dataset.cy);
+      let dx = t.clientX - cx, dy = t.clientY - cy;
+      const dist = Math.min(joyRadius, Math.hypot(dx, dy));
+      const angle = Math.atan2(dy, dx);
+      const sx = Math.cos(angle) * dist, sy = Math.sin(angle) * dist;
+      joyStick.style.left = (28 + sx) + 'px';
+      joyStick.style.top = (28 + sy) + 'px';
+      moveInput.x = sx / joyRadius;
+      moveInput.y = sy / joyRadius;
+    }
+  });
+  function endJoystick(e) {
+    for (const t of e.changedTouches) {
+      if (t.identifier !== joyTouchId) continue;
+      joyTouchId = null;
+      joyBase.style.display = 'none';
+      joyStick.style.left = '28px';
+      joyStick.style.top = '28px';
+      moveInput.x = 0;
+      moveInput.y = 0;
+    }
+  }
+  joyZone.addEventListener('touchend', endJoystick);
+  joyZone.addEventListener('touchcancel', endJoystick);
+
+  // ---------- Zona de mirar (arrastre táctil, lado derecho) ----------
+  const lookZone = document.getElementById('look-zone');
+  let lookTouchId = null;
+  let lastLookX = 0;
+  lookZone.addEventListener('touchstart', e => {
+    const t = e.changedTouches[0];
+    lookTouchId = t.identifier;
+    lastLookX = t.clientX;
+  });
+  lookZone.addEventListener('touchmove', e => {
+    for (const t of e.changedTouches) {
+      if (t.identifier !== lookTouchId) continue;
+      const deltaX = t.clientX - lastLookX;
+      lastLookX = t.clientX;
+      player.dir += deltaX * 0.008;
+    }
+  });
+  function endLook(e) {
+    for (const t of e.changedTouches) {
+      if (t.identifier === lookTouchId) lookTouchId = null;
+    }
+  }
+  lookZone.addEventListener('touchend', endLook);
+  lookZone.addEventListener('touchcancel', endLook);
 
   function tryMove(nx, ny) {
     if (!isWall(nx, player.y)) player.x = nx;
@@ -185,16 +304,24 @@
     let fx = Math.cos(player.dir), fy = Math.sin(player.dir);
     let sx = Math.cos(player.dir + Math.PI / 2), sy = Math.sin(player.dir + Math.PI / 2);
 
-    let dx = 0, dy = 0;
-    if (keys['KeyW']) { dx += fx; dy += fy; }
-    if (keys['KeyS']) { dx -= fx; dy -= fy; }
-    if (keys['KeyA']) { dx -= sx; dy -= sy; }
-    if (keys['KeyD']) { dx += sx; dy += sy; }
+    // Ejes de input: teclado (-1/0/1) combinado con el joystick táctil
+    let axisX = moveInput.x, axisY = moveInput.y;
+    if (keys['KeyW']) axisY -= 1;
+    if (keys['KeyS']) axisY += 1;
+    if (keys['KeyA']) axisX -= 1;
+    if (keys['KeyD']) axisX += 1;
+    axisX = Math.max(-1, Math.min(1, axisX));
+    axisY = Math.max(-1, Math.min(1, axisY));
+
+    // axisY negativo = adelante (forward), axisX = strafe lateral
+    let dx = fx * -axisY + sx * axisX;
+    let dy = fy * -axisY + sy * axisX;
 
     const len = Math.hypot(dx, dy);
-    if (len > 0) {
-      dx = dx / len * speed;
-      dy = dy / len * speed;
+    if (len > 0.001) {
+      const clampedLen = Math.min(1, len);
+      dx = dx / len * speed * clampedLen;
+      dy = dy / len * speed * clampedLen;
       tryMove(player.x + dx, player.y + dy);
     }
 

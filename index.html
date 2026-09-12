@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Túnel 1930</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14130f">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Túnel 1930">
+<style>
+  html, body {
+    margin: 0; padding: 0; overflow: hidden;
+    background: #000; height: 100%; width: 100%;
+    font-family: sans-serif; user-select: none;
+  }
+  #game { display: block; width: 100%; height: 100%; }
+  #hud {
+    position: fixed; inset: 0; pointer-events: none;
+    color: #eae6d8;
+  }
+  #crosshair {
+    position: absolute; top: 50%; left: 50%;
+    width: 6px; height: 6px; margin: -3px 0 0 -3px;
+    border: 1.5px solid #eae6d8; border-radius: 50%;
+  }
+  #prompt {
+    position: absolute; top: 58%; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 4px;
+    font-size: 14px; display: none; white-space: nowrap;
+  }
+  .bar-wrap { position: absolute; bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  #fuel-wrap { left: 16px; }
+  #health-wrap { right: 16px; }
+  .bar-bg { width: 80px; height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; }
+  #fuel-fill { background: #e0a94a; width: 100%; }
+  #health-fill { background: #c85a5a; width: 100%; }
+  #start-screen {
+    position: fixed; inset: 0; background: #14130f; color: #eae6d8;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; text-align: center; padding: 20px;
+  }
+  #start-screen button {
+    background: transparent; border: 1px solid #eae6d8; color: #eae6d8;
+    padding: 10px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;
+  }
+  #install-banner {
+    position: fixed; left: 12px; right: 12px; bottom: 12px;
+    background: rgba(20,19,15,0.95); color: #eae6d8;
+    border: 1px solid rgba(234,230,216,0.3); border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; display: none;
+    align-items: center; justify-content: space-between; gap: 10px;
+    z-index: 20;
+  }
+  #install-banner button {
+    background: transparent; border: 1px solid #eae6d8; color: #eae6d8;
+    padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;
+    white-space: nowrap;
+  }
+  #install-dismiss {
+    background: none; border: none; color: #eae6d8; opacity: 0.6;
+    font-size: 18px; cursor: pointer; padding: 0 4px;
+  }
+</style>
+</head>
+<body>
+
+<div id="start-screen">
+  <h2>Túnel 1930</h2>
+  <p>WASD para moverte, mouse para mirar, click para empezar.<br>E para interactuar.</p>
+  <button id="start-btn">Entrar al túnel</button>
+</div>
+
+<canvas id="game"></canvas>
+
+<div id="install-banner">
+  <span id="install-text">Instalá Túnel 1930 en tu pantalla de inicio</span>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <button id="install-btn" style="display:none;">Instalar</button>
+    <button id="install-dismiss">✕</button>
+  </div>
+</div>
+
+<div id="hud">
+  <div id="crosshair"></div>
+  <div id="prompt">[E] Interactuar</div>
+  <div id="fuel-wrap" class="bar-wrap">
+    <span>🔥</span>
+    <div class="bar-bg"><div id="fuel-fill" class="bar-fill"></div></div>
+  </div>
+  <div id="health-wrap" class="bar-wrap">
+    <div class="bar-bg"><div id="health-fill" class="bar-fill"></div></div>
+    <span>♥</span>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ---------- Mapa ----------
+  // 1 = ladrillo, 2 = metal, 0 = vacío
+  const map = [
+    [1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,1,1,0,0,1],
+    [1,0,0,0,0,0,1,0,0,1],
+    [1,1,1,0,1,0,1,0,1,1],
+    [1,0,0,0,1,0,0,0,0,1],
+    [1,0,1,0,1,1,1,0,1,1],
+    [1,0,1,0,0,0,0,0,0,1],
+    [1,0,0,0,1,1,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1],
+  ];
+  const mapW = map[0].length, mapH = map.length;
+
+  function isWall(x, y) {
+    const mx = Math.floor(x), my = Math.floor(y);
+    if (mx < 0 || my < 0 || mx >= mapW || my >= mapH) return true;
+    return map[my][mx] !== 0;
+  }
+
+  // ---------- Objetos interactuables (sprites en el mundo) ----------
+  const items = [
+    { x: 3.5, y: 3.5, id: 'llave', label: 'Tomar llave', taken: false, color: '#c8a24a' },
+    { x: 7.5, y: 7.5, id: 'piqueta', label: 'Tomar piqueta', taken: false, color: '#a08060' },
+  ];
+
+  // ---------- Jugador ----------
+  const player = {
+    x: 2.5, y: 1.5,
+    dir: 0,          // ángulo en radianes
+    fov: Math.PI / 3,
+    moveSpeed: 2.2,  // celdas por segundo
+    turnSpeed: 0.0025,
+  };
+
+  const keys = {};
+  window.addEventListener('keydown', e => keys[e.code] = true);
+  window.addEventListener('keyup', e => keys[e.code] = false);
+
+  let pointerLocked = false;
+  document.getElementById('start-btn').addEventListener('click', () => {
+    document.getElementById('start-screen').style.display = 'none';
+    canvas.requestPointerLock();
+  });
+  document.addEventListener('pointerlockchange', () => {
+    pointerLocked = document.pointerLockElement === canvas;
+  });
+  document.addEventListener('mousemove', e => {
+    if (!pointerLocked) return;
+    player.dir += e.movementX * player.turnSpeed;
+  });
+
+  let currentTarget = null;
+  const promptEl = document.getElementById('prompt');
+
+  window.addEventListener('keydown', e => {
+    if (e.code === 'KeyE' && currentTarget) {
+      currentTarget.taken = true;
+      currentTarget = null;
+      promptEl.style.display = 'none';
+    }
+  });
+
+  function tryMove(nx, ny) {
+    if (!isWall(nx, player.y)) player.x = nx;
+    if (!isWall(player.x, ny)) player.y = ny;
+  }
+
+  function update(dt) {
+    const speed = player.moveSpeed * dt;
+    let fx = Math.cos(player.dir), fy = Math.sin(player.dir);
+    let sx = Math.cos(player.dir + Math.PI / 2), sy = Math.sin(player.dir + Math.PI / 2);
+
+    let dx = 0, dy = 0;
+    if (keys['KeyW']) { dx += fx; dy += fy; }
+    if (keys['KeyS']) { dx -= fx; dy -= fy; }
+    if (keys['KeyA']) { dx -= sx; dy -= sy; }
+    if (keys['KeyD']) { dx += sx; dy += sy; }
+
+    const len = Math.hypot(dx, dy);
+    if (len > 0) {
+      dx = dx / len * speed;
+      dy = dy / len * speed;
+      tryMove(player.x + dx, player.y + dy);
+    }
+
+    // Chequear item interactuable más cercano dentro del cono de vista
+    currentTarget = null;
+    let bestDist = 1.3;
+    for (const item of items) {
+      if (item.taken) continue;
+      const ddx = item.x - player.x, ddy = item.y - player.y;
+      const dist = Math.hypot(ddx, ddy);
+      if (dist < bestDist) {
+        const angleTo = Math.atan2(ddy, ddx);
+        let diff = angleTo - player.dir;
+        while (diff > Math.PI) diff -= 2 * Math.PI;
+        while (diff < -Math.PI) diff += 2 * Math.PI;
+        if (Math.abs(diff) < 0.5) {
+          currentTarget = item;
+          bestDist = dist;
+        }
+      }
+    }
+    promptEl.style.display = currentTarget ? 'block' : 'none';
+    if (currentTarget) promptEl.textContent = `[E] ${currentTarget.label}`;
+  }
+
+  // ---------- Raycasting (DDA simplificado) ----------
+  function castRay(angle) {
+    const dirX = Math.cos(angle), dirY = Math.sin(angle);
+    let x = player.x, y = player.y;
+    const step = 0.02;
+    let dist = 0;
+    let hitType = 1;
+    for (let i = 0; i < 800; i++) {
+      x += dirX * step;
+      y += dirY * step;
+      dist += step;
+      const mx = Math.floor(x), my = Math.floor(y);
+      if (mx >= 0 && my >= 0 && mx < mapW && my < mapH && map[my][mx] !== 0) {
+        hitType = map[my][mx];
+        break;
+      }
+    }
+    return { dist, hitType };
+  }
+
+  function render() {
+    // Techo y piso
+    ctx.fillStyle = '#1c1a15';
+    ctx.fillRect(0, 0, W, H / 2);
+    ctx.fillStyle = '#2a271f';
+    ctx.fillRect(0, H / 2, W, H / 2);
+
+    const numRays = Math.floor(W / 2);
+    const colWidth = W / numRays;
+
+    for (let i = 0; i < numRays; i++) {
+      const rayAngle = player.dir - player.fov / 2 + (i / numRays) * player.fov;
+      const { dist, hitType } = castRay(rayAngle);
+      const correctedDist = dist * Math.cos(rayAngle - player.dir);
+      const wallHeight = Math.min(H, H / correctedDist);
+
+      const shade = Math.max(0, 1 - correctedDist / 8);
+      const base = hitType === 2 ? [90, 90, 95] : [110, 78, 55];
+      const r = base[0] * shade, g = base[1] * shade, b = base[2] * shade;
+
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(i * colWidth, (H - wallHeight) / 2, colWidth + 1, wallHeight);
+    }
+
+    // Sprites de items (proyección simple sin z-buffer, alcanza para prototipo)
+    for (const item of items) {
+      if (item.taken) continue;
+      const ddx = item.x - player.x, ddy = item.y - player.y;
+      const dist = Math.hypot(ddx, ddy);
+      const angleTo = Math.atan2(ddy, ddx);
+      let diff = angleTo - player.dir;
+      while (diff > Math.PI) diff -= 2 * Math.PI;
+      while (diff < -Math.PI) diff += 2 * Math.PI;
+      if (Math.abs(diff) < player.fov / 2 + 0.2 && dist > 0.2) {
+        const screenX = (0.5 + diff / player.fov) * W;
+        const size = Math.min(H, H / dist) * 0.3;
+        ctx.fillStyle = item.color;
+        ctx.beginPath();
+        ctx.arc(screenX, H / 2 + size * 0.15, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Viewmodel del farol (siempre fijo abajo a la izquierda)
+    ctx.fillStyle = '#3a2e1a';
+    ctx.fillRect(W * 0.06, H * 0.72, W * 0.14, H * 0.22);
+    ctx.fillStyle = '#e0a94a';
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    ctx.arc(W * 0.13, H * 0.76, W * 0.05, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  let lastTime = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // ---------- PWA: service worker + banner de instalación ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+
+  const banner = document.getElementById('install-banner');
+  const installBtn = document.getElementById('install-btn');
+  const dismissBtn = document.getElementById('install-dismiss');
+  const installText = document.getElementById('install-text');
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('tunel1930_install_dismissed') === '1';
+
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!isStandalone && !dismissed) {
+      installBtn.style.display = 'inline-block';
+      banner.style.display = 'flex';
+    }
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    banner.style.display = 'none';
+  });
+
+  dismissBtn.addEventListener('click', () => {
+    banner.style.display = 'none';
+    localStorage.setItem('tunel1930_install_dismissed', '1');
+  });
+
+  // iOS Safari no dispara beforeinstallprompt: mostramos instrucciones manuales
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = /safari/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent);
+  if (isIOS && isSafari && !isStandalone && !dismissed) {
+    installText.textContent = 'Para instalar: tocá Compartir → "Agregar a inicio"';
+    banner.style.display = 'flex';
+  }
+})();
+</script>
+
+</body>
+</html>

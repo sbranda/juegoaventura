@@ -1,5 +1,5 @@
 // Recordatorio: subir este número en cada deploy para invalidar el cache viejo
-const CACHE_NAME = 'tunel1930-v1';
+const CACHE_NAME = 'tunel1930-v2';
 
 const ASSETS = [
   './',
@@ -8,6 +8,10 @@ const ASSETS = [
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png',
+  './guard-idle.png',
+  './guard-run1.png',
+  './guard-run2.png',
+  './guard-run3.png',
 ];
 
 self.addEventListener('install', (event) => {

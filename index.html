@@ -196,6 +196,22 @@
     return map[my][mx] !== 0;
   }
 
+  // ---------- Sprites del guardia (PATROL, spritesheet subida) ----------
+  const guardFrames = {
+    idle: 'guard-idle.png',
+    run1: 'guard-run1.png',
+    run2: 'guard-run2.png',
+    run3: 'guard-run3.png',
+  };
+  const guardImages = {};
+  for (const key in guardFrames) {
+    const img = new Image();
+    img.src = guardFrames[key];
+    guardImages[key] = img;
+  }
+  const guardRunCycle = ['run1', 'run2', 'run3', 'run2'];
+  const guardFrameDuration = 0.16; // segundos por frame de animación
+
   // ---------- Objetos interactuables (sprites en el mundo) ----------
   const items = [
     { x: 3.5, y: 3.5, id: 'llave', label: 'Tomar llave', taken: false, color: '#c8a24a' },
@@ -228,6 +244,8 @@
     speed: 1.1,
     fov: Math.PI / 4,       // cono de visión de la linterna
     visionRange: 4.5,
+    facingRight: true,
+    animTime: 0,
   };
 
   let gameOverActive = false;
@@ -257,6 +275,8 @@
       guard.x += (ddx / dist) * step;
       guard.y += (ddy / dist) * step;
       guard.dir = Math.atan2(ddy, ddx);
+      guard.facingRight = ddx >= 0;
+      guard.animTime += dt;
     }
 
     // ---------- Detección del jugador ----------
@@ -567,7 +587,7 @@
       }
     }
 
-    // Sprite del guardia con su linterna
+    // Sprite del guardia (imagen real, con animación de caminata)
     {
       const ddx = guard.x - player.x, ddy = guard.y - player.y;
       const dist = Math.hypot(ddx, ddy);
@@ -577,17 +597,19 @@
       while (diff < -Math.PI) diff += 2 * Math.PI;
       if (Math.abs(diff) < player.fov / 2 + 0.2 && dist > 0.2) {
         const screenX = (0.5 + diff / player.fov) * W;
-        const size = Math.min(H, H / dist) * 0.45;
-        ctx.fillStyle = '#2c2c2a';
-        ctx.fillRect(screenX - size * 0.18, H / 2 - size * 0.1, size * 0.36, size * 0.55);
-        ctx.fillStyle = '#e0c99a';
-        ctx.beginPath();
-        ctx.arc(screenX, H / 2 - size * 0.18, size * 0.14, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = 'rgba(224,169,74,0.35)';
-        ctx.beginPath();
-        ctx.arc(screenX, H / 2 + size * 0.1, size * 0.3, 0, Math.PI * 2);
-        ctx.fill();
+        const spriteHeight = Math.min(H, H / dist) * 1.15;
+        const spriteWidth = spriteHeight * (145 / 203); // relación de aspecto del recorte original
+
+        const frameKey = guardRunCycle[Math.floor(guard.animTime / guardFrameDuration) % guardRunCycle.length];
+        const img = guardImages[frameKey];
+
+        if (img.complete && img.naturalWidth > 0) {
+          ctx.save();
+          ctx.translate(screenX, H / 2 + spriteHeight * 0.08);
+          if (!guard.facingRight) ctx.scale(-1, 1);
+          ctx.drawImage(img, -spriteWidth / 2, -spriteHeight / 2, spriteWidth, spriteHeight);
+          ctx.restore();
+        }
       }
     }
 

@@ -1,5 +1,5 @@
 // Recordatorio: subir este número en cada deploy para invalidar el cache viejo
-const CACHE_NAME = 'tunel1930-v3';
+const CACHE_NAME = 'tunel1930-v4';
 
 const ASSETS = [
   './',

@@ -1,5 +1,5 @@
 // Recordatorio: subir este número en cada deploy para invalidar el cache viejo
-const CACHE_NAME = 'deposito-vigilado-v1';
+const CACHE_NAME = 'legado-coleccionista-v1';
 
 const ASSETS = [
   './',
@@ -8,10 +8,6 @@ const ASSETS = [
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png',
-  './guard-idle.png',
-  './guard-run1.png',
-  './guard-run2.png',
-  './guard-run3.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -34,8 +30,6 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request);
-    })
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });

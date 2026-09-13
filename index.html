@@ -42,74 +42,8 @@
   #game { position: fixed; inset: 0; display: none; }
   #scene {
     position: absolute; inset: 0;
-    background: linear-gradient(#1a130d, #241a12 60%, #1a130d);
+    background: #120d09 url('study-bg.jpg') center center / cover no-repeat;
     overflow: hidden;
-  }
-  .deco { position: absolute; }
-  .shelf {
-    top: 0; bottom: 40%; width: 16%;
-    background:
-      repeating-linear-gradient(#3a2a1a, #3a2a1a 10px, #2a1d12 10px, #2a1d12 12px),
-      linear-gradient(#2e2015, #2e2015);
-    border: 2px solid #1a1108;
-  }
-  .shelf.left { left: 0; }
-  .shelf.right { right: 0; }
-  .desk {
-    left: 8%; bottom: 6%; width: 26%; height: 22%;
-    background: linear-gradient(#5a3d24, #402c19);
-    border-radius: 4px 4px 0 0; border: 2px solid #2a1c10;
-  }
-  .desk::before {
-    content: ''; position: absolute; left: 10%; top: -14px; width: 80%; height: 16px;
-    background: #e8dcc0; opacity: 0.85; border-radius: 2px;
-  }
-  .fireplace {
-    left: 38%; bottom: 4%; width: 20%; height: 32%;
-    background: #2a1c10; border: 4px solid #4a3018;
-    border-radius: 60px 60px 0 0 / 90px 90px 0 0;
-  }
-  .fireplace::after {
-    content: ''; position: absolute; left: 20%; bottom: 10%; width: 60%; height: 30%;
-    background: radial-gradient(circle, #5a3218 0%, #2a1c10 80%);
-    border-radius: 50%; opacity: 0.7;
-  }
-  .mantel {
-    left: 36%; bottom: 34%; width: 24%; height: 10px;
-    background: #5a3d24; border: 1px solid #2a1c10;
-  }
-  .chess-table {
-    left: 63%; bottom: 8%; width: 12%; height: 12%;
-    background: #4a3018; border: 2px solid #2a1c10; border-radius: 3px;
-  }
-  .chess-table::before {
-    content: ''; position: absolute; inset: 10%;
-    background:
-      repeating-linear-gradient(90deg, #e8dcc0 0 12.5%, #3a2a1a 12.5% 25%);
-    opacity: 0.85;
-  }
-  .cabinet {
-    right: 6%; bottom: 6%; width: 16%; height: 34%;
-    background: linear-gradient(#3a2a1a, #2a1d12);
-    border: 3px solid #1a1108;
-  }
-  .cabinet::before {
-    content: ''; position: absolute; inset: 8%;
-    background: linear-gradient(rgba(180,210,230,0.12), rgba(180,210,230,0.04));
-    border: 1px solid rgba(200,220,230,0.25);
-  }
-  .portrait-wall {
-    left: 30%; top: 6%; width: 34%; height: 18%;
-    display: flex; gap: 6%; justify-content: center;
-  }
-  .portrait {
-    width: 26%; height: 100%; background: #3a2a1a;
-    border: 4px solid #c9a227; box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
-  }
-  .mantel-chest-visual {
-    left: 44%; bottom: 35%; width: 8%; height: 8%;
-    background: linear-gradient(#5a4020, #3a2810);
-    border: 2px solid #c9a227; border-radius: 2px;
   }
 
   .hotspot {
@@ -217,23 +151,10 @@
 
 <div id="game">
   <div id="scene">
-    <div class="deco shelf left"></div>
-    <div class="deco shelf right"></div>
-    <div class="deco portrait-wall">
-      <div class="portrait"></div><div class="portrait"></div>
-      <div class="portrait"></div><div class="portrait"></div>
-    </div>
-    <div class="deco fireplace"></div>
-    <div class="deco mantel"></div>
-    <div class="deco mantel-chest-visual"></div>
-    <div class="deco desk"></div>
-    <div class="deco chess-table"></div>
-    <div class="deco cabinet"></div>
-
-    <button class="hotspot" id="hs-desk" style="left:21%; top:76%;" title="Escritorio">🗒️</button>
-    <button class="hotspot" id="hs-chess" style="left:69%; top:82%;" title="Mesa de ajedrez">♟️</button>
-    <button class="hotspot" id="hs-cabinet" style="left:88%; top:70%;" title="Vitrina">🗄️</button>
-    <button class="hotspot" id="hs-chest" style="left:48%; top:58%;" title="Cofre sobre la chimenea">🔒</button>
+    <button class="hotspot" id="hs-desk" style="left:19%; top:62%;" title="Escritorio">🗒️</button>
+    <button class="hotspot" id="hs-chess" style="left:89%; top:76%;" title="Mesa de ajedrez">♟️</button>
+    <button class="hotspot" id="hs-cabinet" style="left:80%; top:38%;" title="Estantería">📚</button>
+    <button class="hotspot" id="hs-chest" style="left:50%; top:35%;" title="Cofre sobre la chimenea">🔒</button>
   </div>
 
   <div id="top-bar">
@@ -285,12 +206,13 @@
 <div class="modal-backdrop" id="modal-cabinet">
   <div class="modal-box">
     <button class="modal-close" data-close="modal-cabinet">✕</button>
-    <h2 id="cabinet-title">Vitrina cerrada</h2>
+    <h2 id="cabinet-title">Un libro fuera de lugar</h2>
     <div id="cabinet-locked">
-      <p>Un pequeño cerrojo de bronce impide abrir las puertas de cristal. Necesitás una llave.</p>
+      <p>Entre los lomos de cuero hay uno que no combina: un libro hueco usado como caja fuerte,
+      cerrado con un pequeño cerrojo de bronce. Necesitás una llave.</p>
     </div>
     <div id="cabinet-open" style="display:none;">
-      <p>Dentro hay diarios de viaje y correspondencia cifrada entre los sospechosos:</p>
+      <p>Dentro del libro hueco hay diarios de viaje y correspondencia cifrada entre los sospechosos:</p>
       <p>— El libro de socios del club confirma que <b>E.V.</b> (Edmund Vane) firmó la entrada esa noche.</p>
       <p>— Una carta del ama de llaves confirma que <b>R.T.</b> (Rosalind Thorne) estuvo en su residencia de campo.</p>
       <p>— El boleto de tren de <b>M.A.</b> (Marcus Ashford) coincide en fecha y hora con el viaje a Edimburgo.</p>
@@ -444,12 +366,12 @@
   // ---------- Vitrina / gabinete ----------
   document.getElementById('hs-cabinet').addEventListener('click', () => {
     if (!state.hasKey) {
-      showToast('La vitrina está cerrada con llave.');
+      showToast('El libro hueco está cerrado con un pequeño cerrojo.');
       return;
     }
     document.getElementById('cabinet-locked').style.display = 'none';
     document.getElementById('cabinet-open').style.display = 'block';
-    document.getElementById('cabinet-title').textContent = 'La vitrina abierta';
+    document.getElementById('cabinet-title').textContent = 'El libro hueco, abierto';
     openModal('modal-cabinet');
     if (!state.cabinetOpened) {
       state.cabinetOpened = true;

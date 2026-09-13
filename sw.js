@@ -1,5 +1,5 @@
 // Recordatorio: subir este número en cada deploy para invalidar el cache viejo
-const CACHE_NAME = 'legado-coleccionista-v1';
+const CACHE_NAME = 'legado-coleccionista-v2';
 
 const ASSETS = [
   './',
@@ -8,6 +8,7 @@ const ASSETS = [
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png',
+  './study-bg.jpg',
 ];
 
 self.addEventListener('install', (event) => {

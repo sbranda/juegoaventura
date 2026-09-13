@@ -3,704 +3,541 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Depósito Vigilado</title>
+<title>El Legado del Coleccionista</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#16181c">
+<meta name="theme-color" content="#241a12">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Depósito Vigilado">
+<meta name="apple-mobile-web-app-title" content="El Legado">
 <style>
+  * { box-sizing: border-box; }
   html, body {
-    margin: 0; padding: 0; overflow: hidden;
-    background: #000; height: 100%; width: 100%;
-    font-family: sans-serif; user-select: none;
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: #120d09; color: #e8dcc0;
+    font-family: Georgia, 'Times New Roman', serif;
+    overflow: hidden; user-select: none;
   }
-  #game { display: block; width: 100%; height: 100%; }
-  #hud {
-    position: fixed; inset: 0; pointer-events: none;
-    color: #eae6d8;
-  }
-  #crosshair {
-    position: absolute; top: 50%; left: 50%;
-    width: 6px; height: 6px; margin: -3px 0 0 -3px;
-    border: 1.5px solid #eae6d8; border-radius: 50%;
-  }
-  #prompt {
-    position: absolute; top: 58%; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 4px;
-    font-size: 14px; display: none; white-space: nowrap;
-  }
-  .bar-wrap { position: absolute; bottom: 16px; display: flex; align-items: center; gap: 8px; }
-  #fuel-wrap { left: 16px; }
-  #health-wrap { right: 16px; }
-  .bar-bg { width: 80px; height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
-  .bar-fill { height: 100%; }
-  #fuel-fill { background: #e0a94a; width: 100%; }
-  #health-fill { background: #c85a5a; width: 100%; }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* ---------- Pantalla de inicio ---------- */
   #start-screen {
-    position: fixed; inset: 0; background: #14130f; color: #eae6d8;
+    position: fixed; inset: 0; z-index: 50;
+    background: radial-gradient(ellipse at center, #2b1d14 0%, #120d09 75%);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 12px; text-align: center; padding: 20px;
+    text-align: center; padding: 24px; gap: 14px;
   }
+  #start-screen h1 {
+    font-size: 26px; letter-spacing: 1px; color: #c9a227; margin: 0;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  }
+  #start-screen p { max-width: 380px; line-height: 1.5; font-size: 14px; color: #d8cba8; }
   #start-screen button {
-    background: transparent; border: 1px solid #eae6d8; color: #eae6d8;
-    padding: 10px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;
+    margin-top: 8px; background: transparent; border: 1px solid #c9a227; color: #c9a227;
+    padding: 10px 26px; border-radius: 4px; font-size: 15px; letter-spacing: 0.5px;
   }
-  #install-banner {
-    position: fixed; left: 12px; right: 12px; bottom: 12px;
-    background: rgba(20,19,15,0.95); color: #eae6d8;
-    border: 1px solid rgba(234,230,216,0.3); border-radius: 8px;
-    padding: 10px 14px; font-size: 13px; display: none;
-    align-items: center; justify-content: space-between; gap: 10px;
-    z-index: 20;
+  #start-screen button:active { background: rgba(201,162,39,0.15); }
+
+  /* ---------- Escena ---------- */
+  #game { position: fixed; inset: 0; display: none; }
+  #scene {
+    position: absolute; inset: 0;
+    background: linear-gradient(#1a130d, #241a12 60%, #1a130d);
+    overflow: hidden;
   }
-  #install-banner button {
-    background: transparent; border: 1px solid #eae6d8; color: #eae6d8;
-    padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;
-    white-space: nowrap;
+  .deco { position: absolute; }
+  .shelf {
+    top: 0; bottom: 40%; width: 16%;
+    background:
+      repeating-linear-gradient(#3a2a1a, #3a2a1a 10px, #2a1d12 10px, #2a1d12 12px),
+      linear-gradient(#2e2015, #2e2015);
+    border: 2px solid #1a1108;
   }
-  #install-dismiss {
-    background: none; border: none; color: #eae6d8; opacity: 0.6;
-    font-size: 18px; cursor: pointer; padding: 0 4px;
+  .shelf.left { left: 0; }
+  .shelf.right { right: 0; }
+  .desk {
+    left: 8%; bottom: 6%; width: 26%; height: 22%;
+    background: linear-gradient(#5a3d24, #402c19);
+    border-radius: 4px 4px 0 0; border: 2px solid #2a1c10;
   }
-  #touch-controls {
-    position: fixed; inset: 0; display: none; z-index: 15;
+  .desk::before {
+    content: ''; position: absolute; left: 10%; top: -14px; width: 80%; height: 16px;
+    background: #e8dcc0; opacity: 0.85; border-radius: 2px;
   }
-  #look-zone {
-    position: absolute; right: 0; top: 0; width: 60%; height: 100%;
+  .fireplace {
+    left: 38%; bottom: 4%; width: 20%; height: 32%;
+    background: #2a1c10; border: 4px solid #4a3018;
+    border-radius: 60px 60px 0 0 / 90px 90px 0 0;
   }
-  #joystick-zone {
-    position: absolute; left: 0; top: 0; width: 40%; height: 100%;
+  .fireplace::after {
+    content: ''; position: absolute; left: 20%; bottom: 10%; width: 60%; height: 30%;
+    background: radial-gradient(circle, #5a3218 0%, #2a1c10 80%);
+    border-radius: 50%; opacity: 0.7;
   }
-  #joystick-base {
-    position: absolute; width: 100px; height: 100px; border-radius: 50%;
-    background: rgba(234,230,216,0.12); border: 1px solid rgba(234,230,216,0.35);
-    display: none;
+  .mantel {
+    left: 36%; bottom: 34%; width: 24%; height: 10px;
+    background: #5a3d24; border: 1px solid #2a1c10;
   }
-  #joystick-stick {
-    position: absolute; width: 44px; height: 44px; border-radius: 50%;
-    background: rgba(234,230,216,0.4); left: 28px; top: 28px;
-    pointer-events: none;
+  .chess-table {
+    left: 63%; bottom: 8%; width: 12%; height: 12%;
+    background: #4a3018; border: 2px solid #2a1c10; border-radius: 3px;
   }
-  #interact-btn {
-    position: absolute; right: 24px; bottom: 90px; width: 64px; height: 64px;
-    border-radius: 50%; background: rgba(234,230,216,0.15);
-    border: 1px solid rgba(234,230,216,0.4); color: #eae6d8;
+  .chess-table::before {
+    content: ''; position: absolute; inset: 10%;
+    background:
+      repeating-linear-gradient(90deg, #e8dcc0 0 12.5%, #3a2a1a 12.5% 25%);
+    opacity: 0.85;
+  }
+  .cabinet {
+    right: 6%; bottom: 6%; width: 16%; height: 34%;
+    background: linear-gradient(#3a2a1a, #2a1d12);
+    border: 3px solid #1a1108;
+  }
+  .cabinet::before {
+    content: ''; position: absolute; inset: 8%;
+    background: linear-gradient(rgba(180,210,230,0.12), rgba(180,210,230,0.04));
+    border: 1px solid rgba(200,220,230,0.25);
+  }
+  .portrait-wall {
+    left: 30%; top: 6%; width: 34%; height: 18%;
+    display: flex; gap: 6%; justify-content: center;
+  }
+  .portrait {
+    width: 26%; height: 100%; background: #3a2a1a;
+    border: 4px solid #c9a227; box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
+  }
+  .mantel-chest-visual {
+    left: 44%; bottom: 35%; width: 8%; height: 8%;
+    background: linear-gradient(#5a4020, #3a2810);
+    border: 2px solid #c9a227; border-radius: 2px;
+  }
+
+  .hotspot {
+    position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px;
+    border-radius: 50%; border: 1px solid rgba(201,162,39,0.6);
+    background: rgba(20,15,10,0.55);
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px; z-index: 16;
+    font-size: 20px; color: #e8dcc0;
+    animation: pulse 2.4s infinite ease-in-out;
   }
-  #gameover-screen {
-    position: fixed; inset: 0; background: rgba(20,5,5,0.92); color: #eae6d8;
-    display: none; flex-direction: column; align-items: center; justify-content: center;
-    gap: 12px; text-align: center; padding: 20px; z-index: 30;
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,162,39,0.35); }
+    50% { box-shadow: 0 0 0 8px rgba(201,162,39,0); }
   }
-  #gameover-screen button {
-    background: transparent; border: 1px solid #eae6d8; color: #eae6d8;
-    padding: 10px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;
+  .hotspot[data-disabled="1"] { opacity: 0.35; animation: none; }
+
+  #top-bar {
+    position: absolute; top: 10px; left: 10px; right: 10px;
+    display: flex; justify-content: space-between; z-index: 5;
   }
+  .pill-btn {
+    background: rgba(20,15,10,0.75); border: 1px solid #c9a227; color: #e8dcc0;
+    padding: 8px 14px; border-radius: 20px; font-size: 13px;
+  }
+
+  /* ---------- Libreta de notas ---------- */
+  #notebook-panel {
+    position: fixed; top: 0; right: -320px; width: 300px; height: 100%;
+    background: #1a1108; border-left: 2px solid #c9a227;
+    padding: 60px 16px 16px; overflow-y: auto; z-index: 20;
+    transition: right 0.25s ease;
+  }
+  #notebook-panel.open { right: 0; }
+  #notebook-panel h3 { color: #c9a227; margin-top: 0; font-size: 16px; }
+  .clue {
+    background: rgba(201,162,39,0.08); border-left: 3px solid #c9a227;
+    padding: 8px 10px; margin-bottom: 10px; font-size: 13px; line-height: 1.4;
+  }
+  .clue b { color: #c9a227; display: block; margin-bottom: 3px; font-size: 12px; }
+  #notebook-empty { font-size: 13px; color: #9a8a6a; font-style: italic; }
+
+  /* ---------- Modales ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center; z-index: 30;
+    padding: 20px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-box {
+    background: #241a12; border: 1px solid #c9a227; border-radius: 6px;
+    max-width: 420px; width: 100%; max-height: 82vh; overflow-y: auto;
+    padding: 20px; position: relative;
+  }
+  .modal-box h2 { color: #c9a227; font-size: 18px; margin-top: 0; }
+  .modal-box p { font-size: 14px; line-height: 1.5; }
+  .modal-close {
+    position: absolute; top: 10px; right: 12px; background: none; border: none;
+    color: #e8dcc0; font-size: 18px; opacity: 0.7;
+  }
+  .modal-box button.action {
+    background: transparent; border: 1px solid #c9a227; color: #c9a227;
+    padding: 8px 16px; border-radius: 4px; font-size: 13px; margin-top: 10px;
+    margin-right: 6px;
+  }
+  .modal-box button.action:disabled { opacity: 0.4; }
+  .ink-hidden { color: #241a12; transition: color 1.2s ease; }
+  .ink-revealed { color: #d8a04a; }
+  .msg { font-size: 13px; color: #c9a227; margin-top: 8px; min-height: 16px; }
+
+  .dial-row { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
+  .dial {
+    display: flex; flex-direction: column; align-items: center;
+    border: 1px solid #c9a227; border-radius: 4px; padding: 4px;
+  }
+  .dial button { background: none; border: none; color: #c9a227; font-size: 16px; padding: 2px 10px; }
+  .dial .letter { font-size: 22px; width: 32px; text-align: center; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    background: rgba(20,15,10,0.92); border: 1px solid #c9a227; color: #e8dcc0;
+    padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 40;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease; max-width: 80%;
+    text-align: center;
+  }
+  #toast.show { opacity: 1; }
+
   #win-screen {
-    position: fixed; inset: 0; background: rgba(10,20,14,0.94); color: #eae6d8;
-    display: none; flex-direction: column; align-items: center; justify-content: center;
-    gap: 12px; text-align: center; padding: 20px; z-index: 30;
+    position: fixed; inset: 0; z-index: 60; display: none;
+    background: radial-gradient(ellipse at center, #2b1d14 0%, #120d09 75%);
+    align-items: center; justify-content: center; flex-direction: column;
+    text-align: center; padding: 24px; gap: 12px;
   }
-  #win-screen button {
-    background: transparent; border: 1px solid #eae6d8; color: #eae6d8;
-    padding: 10px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;
-  }
+  #win-screen h2 { color: #c9a227; font-size: 22px; }
+  #win-screen p { max-width: 380px; font-size: 14px; line-height: 1.5; }
 </style>
 </head>
 <body>
 
 <div id="start-screen">
-  <h2>Depósito Vigilado</h2>
-  <p>Desktop: WASD para moverte, mouse para mirar, E para interactuar.<br>Mobile: joystick a la izquierda, arrastrá a la derecha para mirar.</p>
-  <button id="start-btn">Entrar al túnel</button>
+  <h1>EL LEGADO DEL COLECCIONISTA</h1>
+  <p>El anticuario ha sido hallado sin vida en su propio estudio. La puerta se cerró con un antiguo mecanismo
+  y solo se abrirá cuando descubras cuál de sus colegas cometió el crimen — antes de que llegue la policía.</p>
+  <button id="start-btn">Comenzar la investigación</button>
 </div>
 
-<canvas id="game"></canvas>
+<div id="game">
+  <div id="scene">
+    <div class="deco shelf left"></div>
+    <div class="deco shelf right"></div>
+    <div class="deco portrait-wall">
+      <div class="portrait"></div><div class="portrait"></div>
+      <div class="portrait"></div><div class="portrait"></div>
+    </div>
+    <div class="deco fireplace"></div>
+    <div class="deco mantel"></div>
+    <div class="deco mantel-chest-visual"></div>
+    <div class="deco desk"></div>
+    <div class="deco chess-table"></div>
+    <div class="deco cabinet"></div>
 
-<div id="install-banner">
-  <span id="install-text">Instalá Depósito Vigilado en tu pantalla de inicio</span>
-  <div style="display:flex; gap:8px; align-items:center;">
-    <button id="install-btn" style="display:none;">Instalar</button>
-    <button id="install-dismiss">✕</button>
+    <button class="hotspot" id="hs-desk" style="left:21%; top:76%;" title="Escritorio">🗒️</button>
+    <button class="hotspot" id="hs-chess" style="left:69%; top:82%;" title="Mesa de ajedrez">♟️</button>
+    <button class="hotspot" id="hs-cabinet" style="left:88%; top:70%;" title="Vitrina">🗄️</button>
+    <button class="hotspot" id="hs-chest" style="left:48%; top:58%;" title="Cofre sobre la chimenea">🔒</button>
+  </div>
+
+  <div id="top-bar">
+    <button class="pill-btn" id="notebook-toggle">📔 Libreta</button>
+    <button class="pill-btn" id="hint-btn">🕵️ Pista</button>
   </div>
 </div>
 
-<div id="touch-controls">
-  <div id="joystick-zone">
-    <div id="joystick-base"><div id="joystick-stick"></div></div>
-  </div>
-  <div id="look-zone"></div>
-  <button id="interact-btn">E</button>
+<div id="notebook-panel">
+  <h3>Libreta de investigación</h3>
+  <div id="notebook-content"><div id="notebook-empty">Todavía no anotaste ninguna pista.</div></div>
 </div>
 
-<div id="gameover-screen">
-  <h2>Te encontraron</h2>
-  <p>El guardia te vio con la linterna.</p>
-  <button id="retry-btn">Reintentar</button>
+<!-- Modal: diario -->
+<div class="modal-backdrop" id="modal-diary">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-diary">✕</button>
+    <h2>Diario del anticuario</h2>
+    <p>Las páginas están llenas de anotaciones sobre manuscritos antiguos y adquisiciones. La última hoja
+    parece completamente en blanco... salvo por una leve marca amarillenta, como si estuviera escrita con
+    algo distinto a tinta común.</p>
+    <p id="diary-hidden-text" class="ink-hidden">
+      Sospechosos: <b>E.V.</b>, <b>R.T.</b>, <b>M.A.</b>, <b>H.G.</b><br>
+      E.V. dice haber estado en el club esa noche.<br>
+      R.T. asegura haber pasado la velada en su residencia de campo.<br>
+      M.A. sostiene que viajaba hacia Edimburgo.<br>
+      H.G. afirma haber zarpado hacia Calais esa misma tarde.
+    </p>
+    <button class="action" id="reveal-ink-btn">Acercar la hoja a la vela</button>
+    <div class="msg" id="diary-msg"></div>
+  </div>
 </div>
+
+<!-- Modal: ajedrez -->
+<div class="modal-backdrop" id="modal-chess">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-chess">✕</button>
+    <h2>El tablero a medio terminar</h2>
+    <p>Sobre la mesita hay un libro abierto que describe una célebre partida: Anderssen sacrificó
+    prácticamente todas sus piezas mayores para forzar el jaque mate con un golpe final inesperado.
+    El tablero frente a vos reproduce esa misma posición, a la espera de la jugada decisiva.</p>
+    <p><i>"...y entonces, con la dama ya perdida, llegó el golpe que nadie esperaba: la captura que sella la partida."</i></p>
+    <div id="chess-options"></div>
+    <div class="msg" id="chess-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: vitrina / gabinete -->
+<div class="modal-backdrop" id="modal-cabinet">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-cabinet">✕</button>
+    <h2 id="cabinet-title">Vitrina cerrada</h2>
+    <div id="cabinet-locked">
+      <p>Un pequeño cerrojo de bronce impide abrir las puertas de cristal. Necesitás una llave.</p>
+    </div>
+    <div id="cabinet-open" style="display:none;">
+      <p>Dentro hay diarios de viaje y correspondencia cifrada entre los sospechosos:</p>
+      <p>— El libro de socios del club confirma que <b>E.V.</b> (Edmund Vane) firmó la entrada esa noche.</p>
+      <p>— Una carta del ama de llaves confirma que <b>R.T.</b> (Rosalind Thorne) estuvo en su residencia de campo.</p>
+      <p>— El boleto de tren de <b>M.A.</b> (Marcus Ashford) coincide en fecha y hora con el viaje a Edimburgo.</p>
+      <p>— El boleto de barco de <b>H.G.</b> (Helena Gray) hacia Calais está fechado <u>dos días después</u> de la noche
+      del crimen: no pudo haber zarpado esa tarde como afirma en el diario.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: cerradura de letras -->
+<div class="modal-backdrop" id="modal-lock">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-lock">✕</button>
+    <h2>El cofre sobre la chimenea</h2>
+    <p>Un cerrojo de cuatro diales, cada uno con una letra. Solo el apellido del verdadero culpable lo abrirá.</p>
+    <div class="dial-row" id="dial-row"></div>
+    <button class="action" id="lock-submit-btn">Girar el cerrojo</button>
+    <div class="msg" id="lock-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: pista -->
+<div class="modal-backdrop" id="modal-hint">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-hint">✕</button>
+    <h2>Una nota bajo la puerta</h2>
+    <p id="hint-text"></p>
+  </div>
+</div>
+
+<div id="toast"></div>
 
 <div id="win-screen">
-  <h2>Escapaste del depósito</h2>
-  <p>Usaste la tarjeta y la cizalla para salir sin que te vieran.</p>
-  <button id="playagain-btn">Jugar de nuevo</button>
-</div>
-
-<div id="hud">
-  <div id="crosshair"></div>
-  <div id="prompt">[E] Interactuar</div>
-  <div id="fuel-wrap" class="bar-wrap">
-    <span>🔥</span>
-    <div class="bar-bg"><div id="fuel-fill" class="bar-fill"></div></div>
-  </div>
-  <div id="health-wrap" class="bar-wrap">
-    <div class="bar-bg"><div id="health-fill" class="bar-fill"></div></div>
-    <span>♥</span>
-  </div>
+  <h2>El culpable ha sido descubierto</h2>
+  <p id="win-text"></p>
+  <button class="pill-btn" id="restart-btn" style="margin-top:10px;">Jugar de nuevo</button>
 </div>
 
 <script>
 (() => {
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
-  let W, H;
-
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    ctx.imageSmoothingEnabled = false;
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
-  // ---------- Mapa ----------
-  // 1 = cajón de madera, 2 = pared metálica de depósito, 0 = vacío
-  const map = [
-    [1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,1],
-    [1,0,1,1,0,1,1,0,0,1],
-    [1,0,0,0,0,0,1,0,0,1],
-    [1,1,1,0,1,0,1,0,1,1],
-    [1,0,0,0,1,0,0,0,0,1],
-    [1,0,1,0,1,1,1,0,1,1],
-    [1,0,1,0,0,0,0,0,0,1],
-    [1,0,0,0,1,1,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1,1],
-  ];
-  const mapW = map[0].length, mapH = map.length;
-
-  function isWall(x, y) {
-    const mx = Math.floor(x), my = Math.floor(y);
-    if (mx < 0 || my < 0 || mx >= mapW || my >= mapH) return true;
-    return map[my][mx] !== 0;
-  }
-
-  // ---------- Sprites del guardia (PATROL, spritesheet subida) ----------
-  const guardFrames = {
-    idle: 'guard-idle.png',
-    run1: 'guard-run1.png',
-    run2: 'guard-run2.png',
-    run3: 'guard-run3.png',
+  const state = {
+    diaryRevealed: false,
+    chessSolved: false,
+    hasKey: false,
+    cabinetOpened: false,
+    solved: false,
   };
-  const guardImages = {};
-  for (const key in guardFrames) {
-    const img = new Image();
-    img.src = guardFrames[key];
-    guardImages[key] = img;
-  }
-  const guardRunCycle = ['run1', 'run2', 'run3', 'run2'];
-  const guardFrameDuration = 0.16; // segundos por frame de animación
 
-  // ---------- Objetos interactuables (sprites en el mundo) ----------
-  const items = [
-    { x: 3.5, y: 3.5, id: 'tarjeta', label: 'Tomar tarjeta de acceso', taken: false, color: '#4ac8d8' },
-    { x: 7.5, y: 7.5, id: 'cizalla', label: 'Tomar cizalla', taken: false, color: '#9aa0a6' },
-  ];
+  const SOLUTION = 'GRAY'; // apellido de Helena Gray, la culpable
 
-  // Puerta de salida: solo se puede usar si ya se juntaron todos los items
-  const exitDoor = { x: 8.5, y: 3.5 };
-
-  function hasAllItems() {
-    return items.every(i => i.taken);
+  const clues = []; // { title, text }
+  function addClue(title, text) {
+    if (clues.some(c => c.title === title)) return;
+    clues.push({ title, text });
+    renderNotebook();
   }
 
-  // ---------- Jugador ----------
-  const player = {
-    x: 2.5, y: 1.5,
-    dir: 0,          // ángulo en radianes
-    fov: Math.PI / 3,
-    moveSpeed: 2.2,  // celdas por segundo
-    turnSpeed: 0.0025,
-  };
-  const playerStart = { x: player.x, y: player.y, dir: player.dir };
-
-  // ---------- Guardias (amenaza de sigilo) ----------
-  // Varias patrullas, cada una en una zona distinta del túnel
-  function makeGuard(startX, startY, patrolPoints) {
-    return {
-      x: startX, y: startY,
-      dir: 0,
-      patrolPoints,
-      patrolIndex: 1,
-      speed: 1.1,
-      fov: Math.PI / 4,      // cono de visión de la linterna
-      visionRange: 4.5,
-      facingRight: true,
-      animTime: 0,
-    };
-  }
-
-  const guards = [
-    makeGuard(5.5, 5.5, [ { x: 5.5, y: 5.5 }, { x: 8.5, y: 5.5 } ]),
-    makeGuard(5.5, 1.5, [ { x: 5.5, y: 1.5 }, { x: 8.5, y: 1.5 } ]),
-    makeGuard(3.5, 7.5, [ { x: 3.5, y: 7.5 }, { x: 6.5, y: 7.5 } ]),
-  ];
-  const guardsStart = guards.map(g => ({ x: g.x, y: g.y }));
-
-  let gameOverActive = false;
-  let levelWon = false;
-
-  function lineOfSightClear(x0, y0, x1, y1) {
-    const dist = Math.hypot(x1 - x0, y1 - y0);
-    const steps = Math.ceil(dist / 0.08);
-    const dx = (x1 - x0) / steps, dy = (y1 - y0) / steps;
-    let x = x0, y = y0;
-    for (let i = 0; i < steps; i++) {
-      x += dx; y += dy;
-      if (isWall(x, y)) return false;
+  function renderNotebook() {
+    const el = document.getElementById('notebook-content');
+    if (clues.length === 0) {
+      el.innerHTML = '<div id="notebook-empty">Todavía no anotaste ninguna pista.</div>';
+      return;
     }
-    return true;
+    el.innerHTML = clues.map(c => `<div class="clue"><b>${c.title}</b>${c.text}</div>`).join('');
   }
 
-  function updateGuard(guard, dt) {
-    const target = guard.patrolPoints[guard.patrolIndex];
-    const ddx = target.x - guard.x, ddy = target.y - guard.y;
-    const dist = Math.hypot(ddx, ddy);
-
-    if (dist < 0.1) {
-      guard.patrolIndex = (guard.patrolIndex + 1) % guard.patrolPoints.length;
-    } else {
-      const step = Math.min(dist, guard.speed * dt);
-      guard.x += (ddx / dist) * step;
-      guard.y += (ddy / dist) * step;
-      guard.dir = Math.atan2(ddy, ddx);
-      guard.facingRight = ddx >= 0;
-      guard.animTime += dt;
-    }
-
-    // ---------- Detección del jugador ----------
-    const pdx = player.x - guard.x, pdy = player.y - guard.y;
-    const pdist = Math.hypot(pdx, pdy);
-    if (pdist < guard.visionRange) {
-      const angleTo = Math.atan2(pdy, pdx);
-      let diff = angleTo - guard.dir;
-      while (diff > Math.PI) diff -= 2 * Math.PI;
-      while (diff < -Math.PI) diff += 2 * Math.PI;
-      if (Math.abs(diff) < guard.fov / 2 && lineOfSightClear(guard.x, guard.y, player.x, player.y)) {
-        triggerGameOver();
-      }
-    }
+  function showToast(text) {
+    const t = document.getElementById('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(showToast._tid);
+    showToast._tid = setTimeout(() => t.classList.remove('show'), 2600);
   }
 
-  function triggerGameOver() {
-    if (gameOverActive || levelWon) return;
-    gameOverActive = true;
-    document.getElementById('gameover-screen').style.display = 'flex';
-  }
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-  function triggerWin() {
-    if (levelWon || gameOverActive) return;
-    levelWon = true;
-    document.getElementById('win-screen').style.display = 'flex';
-  }
+  document.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', () => closeModal(btn.dataset.close));
+  });
 
-  function resetLevel() {
-    player.x = playerStart.x; player.y = playerStart.y; player.dir = playerStart.dir;
-    guards.forEach((g, i) => {
-      g.x = guardsStart[i].x; g.y = guardsStart[i].y;
-      g.patrolIndex = 1;
-    });
-    for (const item of items) item.taken = false;
-    gameOverActive = false;
-    levelWon = false;
-    document.getElementById('gameover-screen').style.display = 'none';
-    document.getElementById('win-screen').style.display = 'none';
-  }
-
-  document.getElementById('retry-btn').addEventListener('click', resetLevel);
-  document.getElementById('playagain-btn').addEventListener('click', resetLevel);
-
-  const keys = {};
-  window.addEventListener('keydown', e => keys[e.code] = true);
-  window.addEventListener('keyup', e => keys[e.code] = false);
-
-  // Input de movimiento normalizado (-1..1), viene de WASD o del joystick táctil
-  const moveInput = { x: 0, y: 0 };
-
-  const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-
-  let pointerLocked = false;
+  // ---------- Inicio ----------
   document.getElementById('start-btn').addEventListener('click', () => {
     document.getElementById('start-screen').style.display = 'none';
-    if (isTouchDevice) {
-      document.getElementById('touch-controls').style.display = 'block';
+    document.getElementById('game').style.display = 'block';
+  });
+
+  // ---------- Libreta ----------
+  const notebookPanel = document.getElementById('notebook-panel');
+  document.getElementById('notebook-toggle').addEventListener('click', () => {
+    notebookPanel.classList.toggle('open');
+  });
+
+  // ---------- Escritorio / diario ----------
+  document.getElementById('hs-desk').addEventListener('click', () => openModal('modal-diary'));
+
+  document.getElementById('reveal-ink-btn').addEventListener('click', () => {
+    if (state.diaryRevealed) {
+      document.getElementById('diary-msg').textContent = 'El calor ya reveló todo lo que tenía para mostrar.';
+      return;
+    }
+    state.diaryRevealed = true;
+    const p = document.getElementById('diary-hidden-text');
+    p.classList.remove('ink-hidden');
+    p.classList.add('ink-revealed');
+    document.getElementById('diary-msg').textContent = 'El calor de la vela revela una escritura oculta...';
+    addClue(
+      'Coartadas de la noche del crimen',
+      '<br>E.V.: estuvo en el club.<br>R.T.: en su residencia de campo.<br>M.A.: viajaba a Edimburgo.<br>H.G.: dice haber zarpado a Calais esa tarde.'
+    );
+  });
+
+  // ---------- Ajedrez ----------
+  const chessOptions = [
+    { label: 'Dxf6+ (la dama captura en f6, dando jaque)', correct: true },
+    { label: 'Txf6 (la torre captura en f6)', correct: false },
+    { label: 'Cd6+ (el caballo da jaque en d6)', correct: false },
+    { label: 'Ag5 (el alfil se retira a g5)', correct: false },
+  ];
+  function renderChessOptions() {
+    const el = document.getElementById('chess-options');
+    el.innerHTML = '';
+    chessOptions.forEach((opt, i) => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.style.display = 'block';
+      b.style.width = '100%';
+      b.style.textAlign = 'left';
+      b.style.marginBottom = '6px';
+      b.textContent = opt.label;
+      b.disabled = state.chessSolved;
+      b.addEventListener('click', () => {
+        if (state.chessSolved) return;
+        if (opt.correct) {
+          state.chessSolved = true;
+          state.hasKey = true;
+          document.getElementById('chess-msg').textContent =
+            'La pieza encaja y un compartimento se abre bajo el tablero: hay una llave pequeña dentro.';
+          addClue('Llave pequeña obtenida', '<br>Resolviste el acertijo de ajedrez y liberaste el compartimento oculto.');
+          renderChessOptions();
+        } else {
+          document.getElementById('chess-msg').textContent = 'Esa no es la jugada. El libro habla de un sacrificio distinto.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderChessOptions();
+  document.getElementById('hs-chess').addEventListener('click', () => openModal('modal-chess'));
+
+  // ---------- Vitrina / gabinete ----------
+  document.getElementById('hs-cabinet').addEventListener('click', () => {
+    if (!state.hasKey) {
+      showToast('La vitrina está cerrada con llave.');
+      return;
+    }
+    document.getElementById('cabinet-locked').style.display = 'none';
+    document.getElementById('cabinet-open').style.display = 'block';
+    document.getElementById('cabinet-title').textContent = 'La vitrina abierta';
+    openModal('modal-cabinet');
+    if (!state.cabinetOpened) {
+      state.cabinetOpened = true;
+      addClue('E.V. — Edmund Vane', '<br>El libro de socios del club confirma su coartada: estuvo ahí esa noche.');
+      addClue('R.T. — Rosalind Thorne', '<br>Carta del ama de llaves confirma su presencia en la residencia de campo.');
+      addClue('M.A. — Marcus Ashford', '<br>El boleto de tren coincide con el viaje a Edimburgo esa misma noche.');
+      addClue('H.G. — Helena Gray', '<br>Su boleto de barco a Calais está fechado dos días después del crimen. Mintió sobre su coartada.');
+    }
+  });
+
+  // ---------- Cofre / cerradura de letras ----------
+  const dialLetters = ['A', 'A', 'A', 'A'];
+  function renderDials() {
+    const row = document.getElementById('dial-row');
+    row.innerHTML = '';
+    dialLetters.forEach((letter, i) => {
+      const d = document.createElement('div');
+      d.className = 'dial';
+      d.innerHTML = `
+        <button data-i="${i}" data-dir="1">▲</button>
+        <div class="letter">${letter}</div>
+        <button data-i="${i}" data-dir="-1">▼</button>
+      `;
+      row.appendChild(d);
+    });
+    row.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.i, 10);
+        const dir = parseInt(btn.dataset.dir, 10);
+        let code = dialLetters[i].charCodeAt(0) - 65;
+        code = (code + dir + 26) % 26;
+        dialLetters[i] = String.fromCharCode(65 + code);
+        renderDials();
+      });
+    });
+  }
+  renderDials();
+
+  document.getElementById('hs-chest').addEventListener('click', () => openModal('modal-lock'));
+
+  document.getElementById('lock-submit-btn').addEventListener('click', () => {
+    if (state.solved) return;
+    const guess = dialLetters.join('');
+    if (guess === SOLUTION) {
+      state.solved = true;
+      document.getElementById('lock-msg').textContent = 'El cofre se abre. Dentro está la llave maestra de la puerta principal.';
+      addClue('Llave maestra', '<br>El cofre reveló la verdad: Helena Gray mintió sobre su paradero.');
+      setTimeout(() => {
+        closeModal('modal-lock');
+        document.getElementById('win-text').textContent =
+          'Helena Gray afirmó haber zarpado hacia Calais la noche del crimen, pero su propio boleto de barco demuestra que mintió. Con la llave maestra en mano, abrís la puerta principal justo antes de que llegue la policía.';
+        document.getElementById('win-screen').style.display = 'flex';
+      }, 1400);
     } else {
-      canvas.requestPointerLock();
+      document.getElementById('lock-msg').textContent = 'La combinación no es correcta. El cerrojo no cede.';
     }
   });
-  document.addEventListener('pointerlockchange', () => {
-    pointerLocked = document.pointerLockElement === canvas;
-  });
-  document.addEventListener('mousemove', e => {
-    if (!pointerLocked) return;
-    player.dir += e.movementX * player.turnSpeed;
-  });
 
-  let currentTarget = null;
-  const promptEl = document.getElementById('prompt');
-
-  function tryInteract() {
-    if (!currentTarget) return;
-    if (currentTarget.isDoor) {
-      if (hasAllItems()) triggerWin();
+  // ---------- Pistas contextuales ----------
+  document.getElementById('hint-btn').addEventListener('click', () => {
+    let text;
+    if (!state.diaryRevealed) {
+      text = 'El calor despierta lo que la tinta invisible esconde. Acercá la última página del diario a una llama.';
+    } else if (!state.chessSolved) {
+      text = 'Los grandes maestros a veces sacrifican la pieza más valiosa para forzar el final. Mirá bien el tablero.';
+    } else if (!state.cabinetOpened) {
+      text = 'Ya tenés una llave pequeña. Probá abrir aquello que estaba cerrado con llave.';
+    } else if (!state.solved) {
+      text = 'Cruzá las coartadas del diario con las fechas de los boletos. Alguien no estaba donde decía estar.';
     } else {
-      currentTarget.taken = true;
-      currentTarget = null;
-      promptEl.style.display = 'none';
+      text = 'Ya descubriste la verdad. Solo falta cruzar el umbral.';
     }
-  }
-  window.addEventListener('keydown', e => {
-    if (e.code === 'KeyE') tryInteract();
-  });
-  document.getElementById('interact-btn').addEventListener('touchstart', e => {
-    e.preventDefault();
-    tryInteract();
+    document.getElementById('hint-text').textContent = text;
+    openModal('modal-hint');
   });
 
-  // ---------- Joystick virtual (movimiento) ----------
-  const joyZone = document.getElementById('joystick-zone');
-  const joyBase = document.getElementById('joystick-base');
-  const joyStick = document.getElementById('joystick-stick');
-  let joyTouchId = null;
-  const joyRadius = 50;
-
-  joyZone.addEventListener('touchstart', e => {
-    const t = e.changedTouches[0];
-    joyTouchId = t.identifier;
-    joyBase.style.display = 'block';
-    joyBase.style.left = (t.clientX - joyRadius) + 'px';
-    joyBase.style.top = (t.clientY - joyRadius) + 'px';
-    joyBase.dataset.cx = t.clientX;
-    joyBase.dataset.cy = t.clientY;
+  // ---------- Reiniciar ----------
+  document.getElementById('restart-btn').addEventListener('click', () => {
+    location.reload();
   });
-  joyZone.addEventListener('touchmove', e => {
-    for (const t of e.changedTouches) {
-      if (t.identifier !== joyTouchId) continue;
-      const cx = parseFloat(joyBase.dataset.cx), cy = parseFloat(joyBase.dataset.cy);
-      let dx = t.clientX - cx, dy = t.clientY - cy;
-      const dist = Math.min(joyRadius, Math.hypot(dx, dy));
-      const angle = Math.atan2(dy, dx);
-      const sx = Math.cos(angle) * dist, sy = Math.sin(angle) * dist;
-      joyStick.style.left = (28 + sx) + 'px';
-      joyStick.style.top = (28 + sy) + 'px';
-      moveInput.x = sx / joyRadius;
-      moveInput.y = sy / joyRadius;
-    }
-  });
-  function endJoystick(e) {
-    for (const t of e.changedTouches) {
-      if (t.identifier !== joyTouchId) continue;
-      joyTouchId = null;
-      joyBase.style.display = 'none';
-      joyStick.style.left = '28px';
-      joyStick.style.top = '28px';
-      moveInput.x = 0;
-      moveInput.y = 0;
-    }
-  }
-  joyZone.addEventListener('touchend', endJoystick);
-  joyZone.addEventListener('touchcancel', endJoystick);
 
-  // ---------- Zona de mirar (arrastre táctil, lado derecho) ----------
-  const lookZone = document.getElementById('look-zone');
-  let lookTouchId = null;
-  let lastLookX = 0;
-  lookZone.addEventListener('touchstart', e => {
-    const t = e.changedTouches[0];
-    lookTouchId = t.identifier;
-    lastLookX = t.clientX;
-  });
-  lookZone.addEventListener('touchmove', e => {
-    for (const t of e.changedTouches) {
-      if (t.identifier !== lookTouchId) continue;
-      const deltaX = t.clientX - lastLookX;
-      lastLookX = t.clientX;
-      player.dir += deltaX * 0.008;
-    }
-  });
-  function endLook(e) {
-    for (const t of e.changedTouches) {
-      if (t.identifier === lookTouchId) lookTouchId = null;
-    }
-  }
-  lookZone.addEventListener('touchend', endLook);
-  lookZone.addEventListener('touchcancel', endLook);
-
-  function tryMove(nx, ny) {
-    if (!isWall(nx, player.y)) player.x = nx;
-    if (!isWall(player.x, ny)) player.y = ny;
-  }
-
-  function update(dt) {
-    const speed = player.moveSpeed * dt;
-    let fx = Math.cos(player.dir), fy = Math.sin(player.dir);
-    let sx = Math.cos(player.dir + Math.PI / 2), sy = Math.sin(player.dir + Math.PI / 2);
-
-    // Ejes de input: teclado (-1/0/1) combinado con el joystick táctil
-    let axisX = moveInput.x, axisY = moveInput.y;
-    if (keys['KeyW']) axisY -= 1;
-    if (keys['KeyS']) axisY += 1;
-    if (keys['KeyA']) axisX -= 1;
-    if (keys['KeyD']) axisX += 1;
-    axisX = Math.max(-1, Math.min(1, axisX));
-    axisY = Math.max(-1, Math.min(1, axisY));
-
-    // axisY negativo = adelante (forward), axisX = strafe lateral
-    let dx = fx * -axisY + sx * axisX;
-    let dy = fy * -axisY + sy * axisX;
-
-    const len = Math.hypot(dx, dy);
-    if (len > 0.001) {
-      const clampedLen = Math.min(1, len);
-      dx = dx / len * speed * clampedLen;
-      dy = dy / len * speed * clampedLen;
-      tryMove(player.x + dx, player.y + dy);
-    }
-
-    // Chequear item interactuable más cercano dentro del cono de vista
-    currentTarget = null;
-    let bestDist = 1.3;
-    for (const item of items) {
-      if (item.taken) continue;
-      const ddx = item.x - player.x, ddy = item.y - player.y;
-      const dist = Math.hypot(ddx, ddy);
-      if (dist < bestDist) {
-        const angleTo = Math.atan2(ddy, ddx);
-        let diff = angleTo - player.dir;
-        while (diff > Math.PI) diff -= 2 * Math.PI;
-        while (diff < -Math.PI) diff += 2 * Math.PI;
-        if (Math.abs(diff) < 0.5) {
-          currentTarget = item;
-          bestDist = dist;
-        }
-      }
-    }
-    {
-      const ddx = exitDoor.x - player.x, ddy = exitDoor.y - player.y;
-      const dist = Math.hypot(ddx, ddy);
-      if (dist < bestDist) {
-        const angleTo = Math.atan2(ddy, ddx);
-        let diff = angleTo - player.dir;
-        while (diff > Math.PI) diff -= 2 * Math.PI;
-        while (diff < -Math.PI) diff += 2 * Math.PI;
-        if (Math.abs(diff) < 0.5) {
-          currentTarget = {
-            isDoor: true,
-            label: hasAllItems() ? 'Escapar por la puerta' : 'Puerta trabada (faltan objetos)',
-          };
-          bestDist = dist;
-        }
-      }
-    }
-    promptEl.style.display = currentTarget ? 'block' : 'none';
-    if (currentTarget) promptEl.textContent = `[E] ${currentTarget.label}`;
-
-    for (const g of guards) updateGuard(g, dt);
-  }
-
-  // ---------- Raycasting (DDA simplificado) ----------
-  function castRay(angle) {
-    const dirX = Math.cos(angle), dirY = Math.sin(angle);
-    let x = player.x, y = player.y;
-    const step = 0.02;
-    let dist = 0;
-    let hitType = 1;
-    for (let i = 0; i < 800; i++) {
-      x += dirX * step;
-      y += dirY * step;
-      dist += step;
-      const mx = Math.floor(x), my = Math.floor(y);
-      if (mx >= 0 && my >= 0 && mx < mapW && my < mapH && map[my][mx] !== 0) {
-        hitType = map[my][mx];
-        break;
-      }
-    }
-    return { dist, hitType };
-  }
-
-  function render() {
-    // Techo y piso
-    ctx.fillStyle = '#16181c';
-    ctx.fillRect(0, 0, W, H / 2);
-    ctx.fillStyle = '#3a3d40';
-    ctx.fillRect(0, H / 2, W, H / 2);
-
-    const numRays = Math.floor(W / 2);
-    const colWidth = W / numRays;
-
-    for (let i = 0; i < numRays; i++) {
-      const rayAngle = player.dir - player.fov / 2 + (i / numRays) * player.fov;
-      const { dist, hitType } = castRay(rayAngle);
-      const correctedDist = dist * Math.cos(rayAngle - player.dir);
-      const wallHeight = Math.min(H, H / correctedDist);
-
-      const shade = Math.max(0, 1 - correctedDist / 8);
-      const base = hitType === 2 ? [70, 76, 82] : [120, 95, 65];
-      const r = base[0] * shade, g = base[1] * shade, b = base[2] * shade;
-
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fillRect(i * colWidth, (H - wallHeight) / 2, colWidth + 1, wallHeight);
-    }
-
-    // Sprites de items (proyección simple sin z-buffer, alcanza para prototipo)
-    for (const item of items) {
-      if (item.taken) continue;
-      const ddx = item.x - player.x, ddy = item.y - player.y;
-      const dist = Math.hypot(ddx, ddy);
-      const angleTo = Math.atan2(ddy, ddx);
-      let diff = angleTo - player.dir;
-      while (diff > Math.PI) diff -= 2 * Math.PI;
-      while (diff < -Math.PI) diff += 2 * Math.PI;
-      if (Math.abs(diff) < player.fov / 2 + 0.2 && dist > 0.2) {
-        const screenX = (0.5 + diff / player.fov) * W;
-        const size = Math.min(H, H / dist) * 0.3;
-        ctx.fillStyle = item.color;
-        ctx.beginPath();
-        ctx.arc(screenX, H / 2 + size * 0.15, size / 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // Puerta de salida (cambia de color según si está disponible o no)
-    {
-      const ddx = exitDoor.x - player.x, ddy = exitDoor.y - player.y;
-      const dist = Math.hypot(ddx, ddy);
-      const angleTo = Math.atan2(ddy, ddx);
-      let diff = angleTo - player.dir;
-      while (diff > Math.PI) diff -= 2 * Math.PI;
-      while (diff < -Math.PI) diff += 2 * Math.PI;
-      if (Math.abs(diff) < player.fov / 2 + 0.2 && dist > 0.2) {
-        const screenX = (0.5 + diff / player.fov) * W;
-        const doorHeight = Math.min(H, H / dist) * 0.85;
-        const doorWidth = doorHeight * 0.4;
-        ctx.fillStyle = hasAllItems() ? '#6a8f5a' : '#4a3a2a';
-        ctx.fillRect(screenX - doorWidth / 2, H / 2 - doorHeight / 2, doorWidth, doorHeight);
-      }
-    }
-
-    // Sprites de los guardias (imagen real, con animación de caminata),
-    // ordenados de más lejos a más cerca para que se superpongan bien
-    const guardsByDist = guards
-      .map(g => ({ g, dist: Math.hypot(g.x - player.x, g.y - player.y) }))
-      .sort((a, b) => b.dist - a.dist);
-
-    for (const { g: guard, dist } of guardsByDist) {
-      const ddx = guard.x - player.x, ddy = guard.y - player.y;
-      const angleTo = Math.atan2(ddy, ddx);
-      let diff = angleTo - player.dir;
-      while (diff > Math.PI) diff -= 2 * Math.PI;
-      while (diff < -Math.PI) diff += 2 * Math.PI;
-      if (Math.abs(diff) < player.fov / 2 + 0.2 && dist > 0.2) {
-        const screenX = (0.5 + diff / player.fov) * W;
-        const spriteHeight = Math.min(H, H / dist) * 1.15;
-        const spriteWidth = spriteHeight * (145 / 203); // relación de aspecto del recorte original
-
-        const frameKey = guardRunCycle[Math.floor(guard.animTime / guardFrameDuration) % guardRunCycle.length];
-        const img = guardImages[frameKey];
-
-        if (img.complete && img.naturalWidth > 0) {
-          ctx.save();
-          ctx.translate(screenX, H / 2 + spriteHeight * 0.08);
-          if (!guard.facingRight) ctx.scale(-1, 1);
-          ctx.drawImage(img, -spriteWidth / 2, -spriteHeight / 2, spriteWidth, spriteHeight);
-          ctx.restore();
-        }
-      }
-    }
-
-    // Viewmodel del farol (siempre fijo abajo a la izquierda)
-    ctx.fillStyle = '#3a2e1a';
-    ctx.fillRect(W * 0.06, H * 0.72, W * 0.14, H * 0.22);
-    ctx.fillStyle = '#e0a94a';
-    ctx.globalAlpha = 0.5;
-    ctx.beginPath();
-    ctx.arc(W * 0.13, H * 0.76, W * 0.05, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-  }
-
-  let lastTime = performance.now();
-  function loop(now) {
-    const dt = Math.min(0.05, (now - lastTime) / 1000);
-    lastTime = now;
-    if (!gameOverActive && !levelWon) update(dt);
-    render();
-    requestAnimationFrame(loop);
-  }
-  requestAnimationFrame(loop);
-
-  // ---------- PWA: service worker + banner de instalación ----------
+  // ---------- Service worker ----------
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     });
   }
-
-  const banner = document.getElementById('install-banner');
-  const installBtn = document.getElementById('install-btn');
-  const dismissBtn = document.getElementById('install-dismiss');
-  const installText = document.getElementById('install-text');
-
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone === true;
-  const dismissed = localStorage.getItem('tunel1930_install_dismissed') === '1';
-
-  let deferredPrompt = null;
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (!isStandalone && !dismissed) {
-      installBtn.style.display = 'inline-block';
-      banner.style.display = 'flex';
-    }
-  });
-
-  installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    banner.style.display = 'none';
-  });
-
-  dismissBtn.addEventListener('click', () => {
-    banner.style.display = 'none';
-    localStorage.setItem('tunel1930_install_dismissed', '1');
-  });
-
-  // iOS Safari no dispara beforeinstallprompt: mostramos instrucciones manuales
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isSafari = /safari/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent);
-  if (isIOS && isSafari && !isStandalone && !dismissed) {
-    installText.textContent = 'Para instalar: tocá Compartir → "Agregar a inicio"';
-    banner.style.display = 'flex';
-  }
 })();
 </script>
-
 </body>
 </html>

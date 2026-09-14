@@ -185,6 +185,16 @@
     <div id="hotspots-7" style="display:none;">
       <button class="hotspot" id="hs-verificar" style="left:47%; top:60%;" title="Verificar el Acta">🕯️</button>
     </div>
+    <div id="hotspots-8" style="display:none;">
+      <button class="hotspot" id="hs-baterias" style="left:20%; top:55%;" title="Baterías de cañones">💣</button>
+      <button class="hotspot" id="hs-polvorin" style="left:83%; top:50%;" title="Polvorín">🔓</button>
+      <button class="hotspot" id="hs-bandera" style="left:51%; top:25%;" title="Bandera">🚩</button>
+    </div>
+    <div id="hotspots-9" style="display:none;">
+      <button class="hotspot" id="hs-manifiesto" style="left:20%; top:65%;" title="Cajas y manifiesto">📦</button>
+      <button class="hotspot" id="hs-grua" style="left:63%; top:35%;" title="Grúa de carga">🏗️</button>
+      <button class="hotspot" id="hs-mosaico" style="left:82%; top:70%;" title="Mosaico de la aduana">🔆</button>
+    </div>
   </div>
 
   <div id="objective-banner"><b>Objetivo:</b> <span id="objective-text"></span></div>
@@ -413,6 +423,79 @@
 
 <div id="toast"></div>
 
+<!-- Modal: código de baterías (Nivel 8) -->
+<div class="modal-backdrop" id="modal-baterias">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-baterias">✕</button>
+    <h2>El código de las baterías</h2>
+    <p>Un mensaje cifrado con la clave <b>VIGENCIA</b>. Descifrándolo se obtiene la secuencia de mechas
+    que desactiva los cañones sin encenderlos.</p>
+    <div id="baterias-options"></div>
+    <div class="msg" id="baterias-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: polvorín inundado (Nivel 8) -->
+<div class="modal-backdrop" id="modal-polvorin">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-polvorin">✕</button>
+    <h2>El polvorín inundado</h2>
+    <p>El reloj de la esclusa marca <b>05:34</b>. Hay que ajustar los diales para igualar esa hora exacta
+    y abrir la esclusa de agua antes de que el temporizador llegue a cero.</p>
+    <div class="dial-row" id="polvorin-dials"></div>
+    <button class="action" id="polvorin-submit" style="display:block; width:auto;">Abrir la esclusa</button>
+    <div class="msg" id="polvorin-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: arriado de bandera (Nivel 8) -->
+<div class="modal-backdrop" id="modal-bandera">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-bandera">✕</button>
+    <h2>El arriado de la bandera</h2>
+    <p>La polea de la driza está oxidada y trabada. ¿Qué combinación de nudo y tensión la libera sin
+    romper la cuerda?</p>
+    <div id="bandera-options"></div>
+    <div class="msg" id="bandera-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: manifiesto falso (Nivel 9) -->
+<div class="modal-backdrop" id="modal-manifiesto">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-manifiesto">✕</button>
+    <h2>El manifiesto falso</h2>
+    <p>El manifiesto dice que las cajas de "Textiles" pesan 20 kg y las de "Herramientas" 35 kg. Una caja
+    marcada "Textiles - Lisboa" pesa 35 kg en la balanza real. ¿Qué esconde?</p>
+    <div id="manifiesto-options"></div>
+    <div class="msg" id="manifiesto-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: grúa de carga (Nivel 9) -->
+<div class="modal-backdrop" id="modal-grua">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-grua">✕</button>
+    <h2>La grúa de carga</h2>
+    <p>La grúa de vapor necesita la presión justa para levantar la caja sospechosa sin romper el guinche
+    ni dejarla caer.</p>
+    <div id="grua-options"></div>
+    <div class="msg" id="grua-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: mosaico de la aduana (Nivel 9) -->
+<div class="modal-backdrop" id="modal-mosaico">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-mosaico">✕</button>
+    <h2>El mosaico del Sol</h2>
+    <p>El piso de la Aduana tiene un mosaico circular con un sol en el centro. Presionando las baldosas en
+    el orden correcto se abre el depósito fiscal para guardar las armas confiscadas.</p>
+    <div id="mosaico-options"></div>
+    <div class="msg" id="mosaico-msg"></div>
+  </div>
+</div>
+
 <div id="win-screen">
   <h2>¡La Primera Junta ha nacido!</h2>
   <p id="win-text">Sellaste la proclama a tiempo y escapaste del despacho antes de que la guardia real
@@ -431,6 +514,8 @@
     cifradoSolved: false, pesoSolved: false, campanarioSolved: false,
     banderasSolved: false, cerrojoMilitarSolved: false, balconSolved: false,
     verificadoSolved: false,
+    bateriasSolved: false, polvorinSolved: false, banderaBajadaSolved: false,
+    manifiestoSolved: false, gruaSolved: false, mosaicoSolved: false,
   };
   const inventory = []; // { id, label, icon }
 
@@ -442,11 +527,14 @@
     5: '¡Abrí la Catedral y tocá las campanas! Descifrá el Cifrado Litúrgico para los cerrojos y equilibrá el "Peso del Pecado" para mover la puerta.',
     6: '¡Presentá el Acta! Distraé a la guardia con el código de banderas, abrí el cerrojo militar y salí al balcón.',
     7: 'Entregá y consagrá. Verificá la autenticidad del Acta contra el original de Belgrano usando la lámpara de aceite.',
+    8: 'Asegurá el Fuerte. ¡Desactivá las baterías, inundá el polvorín y arriá la bandera realista antes de que sea tarde!',
+    9: '¡Intercepta el contrabando! Pesá las cajas para identificar las armas, operá la grúa con cuidado y sellá el depósito fiscal.',
   };
   const BACKGROUNDS = {
     1: 'botica-bg.jpg', 2: 'pasadizos-bg.jpg', 3: 'despacho-bg.jpg',
     4: 'imprenta-bg.jpg', 5: 'catedral-bg.jpg',
     6: 'fuerte-bg.jpg', 7: 'consagracion-bg.jpg',
+    8: 'resistencia-bg.jpg', 9: 'aduana-bg.jpg',
   };
 
   function addItem(id, label, icon) {
@@ -485,7 +573,7 @@
     state.level = n;
     document.getElementById('scene').style.backgroundImage = `url('${BACKGROUNDS[n]}')`;
     document.getElementById('objective-text').textContent = OBJECTIVES[n];
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= 9; i++) {
       document.getElementById('hotspots-' + i).style.display = (n === i) ? 'block' : 'none';
     }
     document.getElementById('advance-btn').style.display = 'none';
@@ -525,14 +613,21 @@
           showToast('El paso está despejado. Salí al balcón para presentar el Acta.');
         }
       }
+    } else if (state.level === 8 && state.bateriasSolved && state.polvorinSolved && state.banderaBajadaSolved) {
+      addItem('fuerte', 'Fuerte asegurado', '🏰');
+      btn.textContent = 'Ir a la Aduana →';
+      btn.style.display = 'block';
+    } else if (state.level === 9 && state.manifiestoSolved && state.gruaSolved && state.mosaicoSolved) {
+      addItem('armas', 'Armas confiscadas', '⚔️');
+      triggerFinalWin();
     }
   }
 
   function triggerFinalWin() {
     document.getElementById('win-text').textContent =
-      'Ante Saavedra, Moreno y Paso, el Acta queda verificada y consagrada: la marca del Sol de Mayo confirma ' +
-      'que es genuina. La Primera Junta ha nacido. El 25 de mayo de 1810, Buenos Aires amanece con su primer ' +
-      'gobierno patrio, y las campanas y la multitud en la Plaza de la Victoria celebran el comienzo de una nueva era.';
+      'Ante Saavedra, Moreno y Paso, el Acta quedó consagrada. El Fuerte fue asegurado sin derramar sangre ' +
+      'y el contrabando de armas terminó bajo custodia patriótica en la Aduana. La Primera Junta gobierna sin ' +
+      'oposición armada: el 25 de mayo de 1810, Buenos Aires amanece con su primer gobierno patrio, a salvo.';
     document.getElementById('win-screen').style.display = 'flex';
   }
 
@@ -542,6 +637,7 @@
     else if (state.level === 4) setLevel(5);
     else if (state.level === 5) setLevel(6);
     else if (state.level === 6) setLevel(7);
+    else if (state.level === 8) setLevel(9);
   });
 
   // ---------- Inicio ----------
@@ -1071,8 +1167,200 @@
   document.getElementById('verificar-sello-btn').addEventListener('click', () => {
     if (!state.verificadoSolved) return;
     closeModal('modal-verificar');
-    triggerFinalWin();
+    showToast('El Acta quedó consagrada. Todavía queda asegurar el Fuerte de la resistencia realista.');
+    setLevel(8);
   });
+
+  // ================= NIVEL 8 =================
+  const bateriasOptions = ['3 - 1 - 4 - 2', '1 - 2 - 3 - 4', '4 - 3 - 2 - 1', '2 - 4 - 1 - 3'];
+  function renderBaterias() {
+    const el = document.getElementById('baterias-options');
+    el.innerHTML = '';
+    bateriasOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.bateriasSolved;
+      b.addEventListener('click', () => {
+        if (state.bateriasSolved) return;
+        if (v === '3 - 1 - 4 - 2') {
+          state.bateriasSolved = true;
+          addItem('codigoBaterias', 'Código de baterías', '💣');
+          document.getElementById('baterias-msg').textContent = 'Las mechas se retiran sin encender los cañones.';
+          renderBaterias();
+          checkLevelComplete();
+        } else {
+          document.getElementById('baterias-msg').textContent = 'Esa secuencia enciende una mecha. Probá otra vez.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderBaterias();
+  document.getElementById('hs-baterias').addEventListener('click', () => openModal('modal-baterias'));
+
+  const polvorinTime = [5, 30];
+  function renderPolvorinDials() {
+    const row = document.getElementById('polvorin-dials');
+    row.innerHTML = '';
+    const labels = ['Hora', 'Minuto'];
+    polvorinTime.forEach((v, i) => {
+      const display = i === 0 ? String(v).padStart(2, '0') : String(v).padStart(2, '0');
+      const d = document.createElement('div');
+      d.className = 'dial';
+      d.innerHTML = `
+        <span class="lbl">${labels[i]}</span>
+        <button data-i="${i}" data-dir="1">▲</button>
+        <div class="val">${display}</div>
+        <button data-i="${i}" data-dir="-1">▼</button>
+      `;
+      row.appendChild(d);
+    });
+    row.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (state.polvorinSolved) return;
+        const i = parseInt(btn.dataset.i, 10);
+        const dir = parseInt(btn.dataset.dir, 10);
+        if (i === 0) {
+          let h = polvorinTime[0] + dir;
+          if (h < 0) h = 12; if (h > 12) h = 0;
+          polvorinTime[0] = h;
+        } else {
+          let m = polvorinTime[1] + dir;
+          if (m < 0) m = 59; if (m > 59) m = 0;
+          polvorinTime[1] = m;
+        }
+        renderPolvorinDials();
+      });
+    });
+  }
+  renderPolvorinDials();
+  document.getElementById('hs-polvorin').addEventListener('click', () => openModal('modal-polvorin'));
+  document.getElementById('polvorin-submit').addEventListener('click', () => {
+    if (state.polvorinSolved) return;
+    if (polvorinTime[0] === 5 && polvorinTime[1] === 34) {
+      state.polvorinSolved = true;
+      document.getElementById('polvorin-msg').textContent = 'La esclusa se abre justo a tiempo: el polvorín queda inundado.';
+      checkLevelComplete();
+    } else {
+      document.getElementById('polvorin-msg').textContent = 'El reloj no coincide con el "Clock word". Ajustá de nuevo.';
+    }
+  });
+
+  const banderaOptions = [
+    'Nudo llano con tensión floja',
+    'As de guía con tensión fuerte',
+    'Ballestrinque doble con tensión media',
+    'Nudo de ocho sin tensión',
+  ];
+  function renderBandera() {
+    const el = document.getElementById('bandera-options');
+    el.innerHTML = '';
+    banderaOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.banderaBajadaSolved;
+      b.addEventListener('click', () => {
+        if (state.banderaBajadaSolved) return;
+        if (v === 'Ballestrinque doble con tensión media') {
+          state.banderaBajadaSolved = true;
+          document.getElementById('bandera-msg').textContent = 'La polea cede: la bandera española baja y la escarapela sube en su lugar.';
+          renderBandera();
+          checkLevelComplete();
+        } else {
+          document.getElementById('bandera-msg').textContent = 'La polea oxidada no responde a ese ajuste.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderBandera();
+  document.getElementById('hs-bandera').addEventListener('click', () => openModal('modal-bandera'));
+
+  // ================= NIVEL 9 =================
+  const manifiestoOptions = [
+    'Está vacía',
+    'Contiene mosquetes ocultos',
+    'Está mojada por la lluvia',
+    'El manifiesto tiene razón',
+  ];
+  function renderManifiesto() {
+    const el = document.getElementById('manifiesto-options');
+    el.innerHTML = '';
+    manifiestoOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.manifiestoSolved;
+      b.addEventListener('click', () => {
+        if (state.manifiestoSolved) return;
+        if (v === 'Contiene mosquetes ocultos') {
+          state.manifiestoSolved = true;
+          document.getElementById('manifiesto-msg').textContent = 'El peso de más solo se explica por armas escondidas bajo la paja.';
+          renderManifiesto();
+          checkLevelComplete();
+        } else {
+          document.getElementById('manifiesto-msg').textContent = 'Esa explicación no cierra con la diferencia de peso.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderManifiesto();
+  document.getElementById('hs-manifiesto').addEventListener('click', () => openModal('modal-manifiesto'));
+
+  const gruaOptions = ['Presión alta, engranaje rápido', 'Presión baja, engranaje lento', 'Presión media, engranaje medio', 'Presión alta, sin engranaje'];
+  function renderGrua() {
+    const el = document.getElementById('grua-options');
+    el.innerHTML = '';
+    gruaOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.gruaSolved;
+      b.addEventListener('click', () => {
+        if (state.gruaSolved) return;
+        if (v === 'Presión media, engranaje medio') {
+          state.gruaSolved = true;
+          document.getElementById('grua-msg').textContent = 'La grúa levanta la caja con suavidad y la deja en el muelle.';
+          renderGrua();
+          checkLevelComplete();
+        } else {
+          document.getElementById('grua-msg').textContent = 'El guinche cruje. Esa combinación es demasiado brusca o insuficiente.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderGrua();
+  document.getElementById('hs-grua').addEventListener('click', () => openModal('modal-grua'));
+
+  const mosaicoOptions = ['Centro → borde → centro', 'Sol → rayos → borde', 'Borde → rayos → sol', 'Rayos → centro → borde'];
+  function renderMosaico() {
+    const el = document.getElementById('mosaico-options');
+    el.innerHTML = '';
+    mosaicoOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.mosaicoSolved;
+      b.addEventListener('click', () => {
+        if (state.mosaicoSolved) return;
+        if (v === 'Sol → rayos → borde') {
+          state.mosaicoSolved = true;
+          document.getElementById('mosaico-msg').textContent = 'Las baldosas se hunden en orden: el depósito fiscal se abre.';
+          renderMosaico();
+          checkLevelComplete();
+        } else {
+          document.getElementById('mosaico-msg').textContent = 'Las baldosas no ceden. Ese orden no es correcto.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderMosaico();
+  document.getElementById('hs-mosaico').addEventListener('click', () => openModal('modal-mosaico'));
 
   // ---------- Pistas contextuales ----------
   document.getElementById('hint-btn').addEventListener('click', () => {
@@ -1107,6 +1395,16 @@
     } else {
       if (!state.verificadoSolved) text = 'La marca de agua solo se ve a contraluz. Acercá el documento a la lámpara.';
       else text = 'Ya verificaste el Acta. Solo falta colocar el sello final.';
+    } else if (state.level === 8) {
+      if (!state.bateriasSolved) text = 'La clave VIGENCIA desplaza las letras del mensaje. Empezá por ahí.';
+      else if (!state.polvorinSolved) text = 'El "Clock word" marca 05:34 — ajustá los diales para que coincidan exacto.';
+      else if (!state.banderaBajadaSolved) text = 'El ballestrinque doble aguanta mejor que cualquier nudo simple, con tensión media.';
+      else text = 'El Fuerte está asegurado. Continuá hacia la Aduana.';
+    } else {
+      if (!state.manifiestoSolved) text = 'Una caja de "Textiles" no debería pesar lo mismo que una de "Herramientas".';
+      else if (!state.gruaSolved) text = 'Ni muy brusco ni muy suave: el punto medio es el que no rompe nada.';
+      else if (!state.mosaicoSolved) text = 'Empezá por el sol en el centro del mosaico y seguí hacia afuera.';
+      else text = 'Las armas quedaron confiscadas. La Revolución está a salvo.';
     }
     document.getElementById('hint-text').textContent = text;
     openModal('modal-hint');

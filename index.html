@@ -3,53 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>El Legado del Coleccionista</title>
+<title>1810: La Conspiración de Mayo</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#241a12">
+<meta name="theme-color" content="#1a1410">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="El Legado">
+<meta name="apple-mobile-web-app-title" content="Conspiración de Mayo">
 <style>
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
-    background: #120d09; color: #e8dcc0;
+    background: #0f0c09; color: #e8dcc0;
     font-family: Georgia, 'Times New Roman', serif;
     overflow: hidden; user-select: none;
   }
   button { font-family: inherit; cursor: pointer; }
 
-  /* ---------- Pantalla de inicio ---------- */
+  /* ---------- Inicio ---------- */
   #start-screen {
     position: fixed; inset: 0; z-index: 50;
-    background: radial-gradient(ellipse at center, #2b1d14 0%, #120d09 75%);
+    background: radial-gradient(ellipse at center, #2a2016 0%, #0f0c09 75%);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     text-align: center; padding: 24px; gap: 14px;
   }
-  #start-screen h1 {
-    font-size: 26px; letter-spacing: 1px; color: #c9a227; margin: 0;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
-  }
+  #start-screen h1 { font-size: 23px; letter-spacing: 0.5px; color: #c9a227; margin: 0; }
   #start-screen p { max-width: 380px; line-height: 1.5; font-size: 14px; color: #d8cba8; }
   #start-screen button {
     margin-top: 8px; background: transparent; border: 1px solid #c9a227; color: #c9a227;
-    padding: 10px 26px; border-radius: 4px; font-size: 15px; letter-spacing: 0.5px;
+    padding: 10px 26px; border-radius: 4px; font-size: 15px;
   }
-  #start-screen button:active { background: rgba(201,162,39,0.15); }
 
   /* ---------- Escena ---------- */
   #game { position: fixed; inset: 0; display: none; }
   #scene {
-    position: absolute; inset: 0;
-    background: #120d09 url('study-bg.jpg') center center / cover no-repeat;
-    overflow: hidden;
+    position: absolute; inset: 0; background-size: cover; background-position: center;
+    transition: background-image 0.3s ease;
   }
-
   .hotspot {
     position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px;
-    border-radius: 50%; border: 1px solid rgba(201,162,39,0.6);
-    background: rgba(20,15,10,0.55);
+    border-radius: 50%; border: 1px solid rgba(201,162,39,0.65);
+    background: rgba(15,12,9,0.55);
     display: flex; align-items: center; justify-content: center;
     font-size: 20px; color: #e8dcc0;
     animation: pulse 2.4s infinite ease-in-out;
@@ -58,46 +52,56 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(201,162,39,0.35); }
     50% { box-shadow: 0 0 0 8px rgba(201,162,39,0); }
   }
-  .hotspot[data-disabled="1"] { opacity: 0.35; animation: none; }
+  .hotspot.done { opacity: 0.4; animation: none; }
 
-  #top-bar {
-    position: absolute; top: 10px; left: 10px; right: 10px;
-    display: flex; justify-content: space-between; z-index: 5;
+  #objective-banner {
+    position: absolute; top: 12px; left: 12px; max-width: 62%;
+    background: rgba(10,8,6,0.72); border: 1px solid rgba(201,162,39,0.5);
+    padding: 10px 14px; font-size: 13px; line-height: 1.45; border-radius: 3px;
   }
-  .pill-btn {
-    background: rgba(20,15,10,0.75); border: 1px solid #c9a227; color: #e8dcc0;
-    padding: 8px 14px; border-radius: 20px; font-size: 13px;
+  #objective-banner b { color: #c9a227; }
+
+  #advance-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(20,60,30,0.75); border: 1px solid #6fae6f; color: #d8f0d8;
+    padding: 9px 16px; border-radius: 20px; font-size: 13px; display: none;
   }
 
-  /* ---------- Libreta de notas ---------- */
-  #notebook-panel {
-    position: fixed; top: 0; right: -320px; width: 300px; height: 100%;
-    background: #1a1108; border-left: 2px solid #c9a227;
-    padding: 60px 16px 16px; overflow-y: auto; z-index: 20;
-    transition: right 0.25s ease;
+  #hint-btn {
+    position: absolute; bottom: 74px; right: 12px;
+    background: rgba(15,12,9,0.75); border: 1px solid #c9a227; color: #e8dcc0;
+    padding: 8px 12px; border-radius: 20px; font-size: 12px;
   }
-  #notebook-panel.open { right: 0; }
-  #notebook-panel h3 { color: #c9a227; margin-top: 0; font-size: 16px; }
-  .clue {
-    background: rgba(201,162,39,0.08); border-left: 3px solid #c9a227;
-    padding: 8px 10px; margin-bottom: 10px; font-size: 13px; line-height: 1.4;
+
+  #inventory-bar {
+    position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+    display: flex; gap: 8px; background: rgba(10,8,6,0.72);
+    border: 1px solid rgba(201,162,39,0.5); border-radius: 8px; padding: 8px 10px;
+    max-width: 92%; overflow-x: auto;
   }
-  .clue b { color: #c9a227; display: block; margin-bottom: 3px; font-size: 12px; }
-  #notebook-empty { font-size: 13px; color: #9a8a6a; font-style: italic; }
+  .inv-item {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 9px; color: #d8cba8; min-width: 46px;
+  }
+  .inv-item .ic {
+    width: 34px; height: 34px; border: 1px solid #c9a227; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+    background: rgba(201,162,39,0.08);
+  }
+  #inventory-empty { font-size: 11px; color: #8a7a5a; padding: 6px 4px; }
 
   /* ---------- Modales ---------- */
   .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-    display: none; align-items: center; justify-content: center; z-index: 30;
-    padding: 20px;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.72);
+    display: none; align-items: center; justify-content: center; z-index: 30; padding: 20px;
   }
   .modal-backdrop.open { display: flex; }
   .modal-box {
-    background: #241a12; border: 1px solid #c9a227; border-radius: 6px;
+    background: #1e1712; border: 1px solid #c9a227; border-radius: 6px;
     max-width: 420px; width: 100%; max-height: 82vh; overflow-y: auto;
     padding: 20px; position: relative;
   }
-  .modal-box h2 { color: #c9a227; font-size: 18px; margin-top: 0; }
+  .modal-box h2 { color: #c9a227; font-size: 17px; margin-top: 0; }
   .modal-box p { font-size: 14px; line-height: 1.5; }
   .modal-close {
     position: absolute; top: 10px; right: 12px; background: none; border: none;
@@ -105,132 +109,156 @@
   }
   .modal-box button.action {
     background: transparent; border: 1px solid #c9a227; color: #c9a227;
-    padding: 8px 16px; border-radius: 4px; font-size: 13px; margin-top: 10px;
-    margin-right: 6px;
+    padding: 8px 14px; border-radius: 4px; font-size: 13px; margin: 4px 4px 4px 0;
+    display: block; width: 100%; text-align: left;
   }
   .modal-box button.action:disabled { opacity: 0.4; }
-  .ink-hidden { color: #241a12; transition: color 1.2s ease; }
-  .ink-revealed { color: #d8a04a; }
   .msg { font-size: 13px; color: #c9a227; margin-top: 8px; min-height: 16px; }
 
-  .dial-row { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
+  .dial-row { display: flex; gap: 10px; justify-content: center; margin: 16px 0; flex-wrap: wrap; }
   .dial {
     display: flex; flex-direction: column; align-items: center;
-    border: 1px solid #c9a227; border-radius: 4px; padding: 4px;
+    border: 1px solid #c9a227; border-radius: 4px; padding: 4px 8px;
   }
+  .dial span.lbl { font-size: 10px; color: #9a8a6a; margin-bottom: 2px; }
   .dial button { background: none; border: none; color: #c9a227; font-size: 16px; padding: 2px 10px; }
-  .dial .letter { font-size: 22px; width: 32px; text-align: center; }
+  .dial .val { font-size: 18px; width: 56px; text-align: center; }
 
   #toast {
     position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
-    background: rgba(20,15,10,0.92); border: 1px solid #c9a227; color: #e8dcc0;
+    background: rgba(15,12,9,0.94); border: 1px solid #c9a227; color: #e8dcc0;
     padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 40;
-    opacity: 0; pointer-events: none; transition: opacity 0.3s ease; max-width: 80%;
-    text-align: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease; max-width: 80%; text-align: center;
   }
   #toast.show { opacity: 1; }
 
   #win-screen {
     position: fixed; inset: 0; z-index: 60; display: none;
-    background: radial-gradient(ellipse at center, #2b1d14 0%, #120d09 75%);
+    background: radial-gradient(ellipse at center, #2a2016 0%, #0f0c09 75%);
     align-items: center; justify-content: center; flex-direction: column;
     text-align: center; padding: 24px; gap: 12px;
   }
-  #win-screen h2 { color: #c9a227; font-size: 22px; }
+  #win-screen h2 { color: #c9a227; font-size: 21px; }
   #win-screen p { max-width: 380px; font-size: 14px; line-height: 1.5; }
 </style>
 </head>
 <body>
 
 <div id="start-screen">
-  <h1>EL LEGADO DEL COLECCIONISTA</h1>
-  <p>El anticuario ha sido hallado sin vida en su propio estudio. La puerta se cerró con un antiguo mecanismo
-  y solo se abrirá cuando descubras cuál de sus colegas cometió el crimen — antes de que llegue la policía.</p>
-  <button id="start-btn">Comenzar la investigación</button>
+  <h1>1810: LA CONSPIRACIÓN DE MAYO</h1>
+  <p>Sos un espía al servicio de la Sociedad Patriótica en Buenos Aires. Durante la Semana de Mayo debés
+  descubrir el punto de reunión secreto, hacerte con la lista de la Junta y sellar la proclama patriótica
+  antes de que las fuerzas realistas descubran la conspiración.</p>
+  <button id="start-btn">Comenzar la conspiración</button>
 </div>
 
 <div id="game">
   <div id="scene">
-    <button class="hotspot" id="hs-desk" style="left:19%; top:62%;" title="Escritorio">🗒️</button>
-    <button class="hotspot" id="hs-chess" style="left:89%; top:76%;" title="Mesa de ajedrez">♟️</button>
-    <button class="hotspot" id="hs-cabinet" style="left:80%; top:38%;" title="Estantería">📚</button>
-    <button class="hotspot" id="hs-chest" style="left:50%; top:35%;" title="Cofre sobre la chimenea">🔒</button>
-  </div>
-
-  <div id="top-bar">
-    <button class="pill-btn" id="notebook-toggle">📔 Libreta</button>
-    <button class="pill-btn" id="hint-btn">🕵️ Pista</button>
-  </div>
-</div>
-
-<div id="notebook-panel">
-  <h3>Libreta de investigación</h3>
-  <div id="notebook-content"><div id="notebook-empty">Todavía no anotaste ninguna pista.</div></div>
-</div>
-
-<!-- Modal: diario -->
-<div class="modal-backdrop" id="modal-diary">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-diary">✕</button>
-    <h2>Diario del anticuario</h2>
-    <p>Las páginas están llenas de anotaciones sobre manuscritos antiguos y adquisiciones. La última hoja
-    parece completamente en blanco... salvo por una leve marca amarillenta, como si estuviera escrita con
-    algo distinto a tinta común.</p>
-    <p id="diary-hidden-text" class="ink-hidden">
-      Sospechosos: <b>E.V.</b>, <b>R.T.</b>, <b>M.A.</b>, <b>H.G.</b><br>
-      E.V. dice haber estado en el club esa noche.<br>
-      R.T. asegura haber pasado la velada en su residencia de campo.<br>
-      M.A. sostiene que viajaba hacia Edimburgo.<br>
-      H.G. afirma haber zarpado hacia Calais esa misma tarde.
-    </p>
-    <button class="action" id="reveal-ink-btn">Acercar la hoja a la vela</button>
-    <div class="msg" id="diary-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: ajedrez -->
-<div class="modal-backdrop" id="modal-chess">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-chess">✕</button>
-    <h2>El tablero a medio terminar</h2>
-    <p>Sobre la mesita hay un libro abierto que describe una célebre partida: Anderssen sacrificó
-    prácticamente todas sus piezas mayores para forzar el jaque mate con un golpe final inesperado.
-    El tablero frente a vos reproduce esa misma posición, a la espera de la jugada decisiva.</p>
-    <p><i>"...y entonces, con la dama ya perdida, llegó el golpe que nadie esperaba: la captura que sella la partida."</i></p>
-    <div id="chess-options"></div>
-    <div class="msg" id="chess-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: vitrina / gabinete -->
-<div class="modal-backdrop" id="modal-cabinet">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-cabinet">✕</button>
-    <h2 id="cabinet-title">Un libro fuera de lugar</h2>
-    <div id="cabinet-locked">
-      <p>Entre los lomos de cuero hay uno que no combina: un libro hueco usado como caja fuerte,
-      cerrado con un pequeño cerrojo de bronce. Necesitás una llave.</p>
+    <div id="hotspots-1">
+      <button class="hotspot" id="hs-cipher" style="left:38%; top:56%;" title="Correspondencia">✉️</button>
+      <button class="hotspot" id="hs-jars" style="left:74%; top:44%;" title="Frascos">🧪</button>
     </div>
-    <div id="cabinet-open" style="display:none;">
-      <p>Dentro del libro hueco hay diarios de viaje y correspondencia cifrada entre los sospechosos:</p>
-      <p>— El libro de socios del club confirma que <b>E.V.</b> (Edmund Vane) firmó la entrada esa noche.</p>
-      <p>— Una carta del ama de llaves confirma que <b>R.T.</b> (Rosalind Thorne) estuvo en su residencia de campo.</p>
-      <p>— El boleto de tren de <b>M.A.</b> (Marcus Ashford) coincide en fecha y hora con el viaje a Edimburgo.</p>
-      <p>— El boleto de barco de <b>H.G.</b> (Helena Gray) hacia Calais está fechado <u>dos días después</u> de la noche
-      del crimen: no pudo haber zarpado esa tarde como afirma en el diario.</p>
+    <div id="hotspots-2" style="display:none;">
+      <button class="hotspot" id="hs-balanza" style="left:48%; top:56%;" title="Balanza">⚖️</button>
+      <button class="hotspot" id="hs-fechas" style="left:70%; top:44%;" title="Panel de fechas">🔘</button>
+    </div>
+    <div id="hotspots-3" style="display:none;">
+      <button class="hotspot" id="hs-reloj" style="left:13%; top:40%;" title="Reloj de pie">🕰️</button>
+      <button class="hotspot" id="hs-caja" style="left:51%; top:44%;" title="Caja fuerte">🔒</button>
+      <button class="hotspot" id="hs-proclama" style="left:76%; top:75%;" title="Proclama">📜</button>
     </div>
   </div>
+
+  <div id="objective-banner"><b>Objetivo:</b> <span id="objective-text"></span></div>
+  <button id="advance-btn">Continuar →</button>
+  <button id="hint-btn">🕵️ Pista</button>
+
+  <div id="inventory-bar"><div id="inventory-empty">Todavía no tenés nada</div></div>
 </div>
 
-<!-- Modal: cerradura de letras -->
-<div class="modal-backdrop" id="modal-lock">
+<!-- Modal: cifrado (Nivel 1) -->
+<div class="modal-backdrop" id="modal-cipher">
   <div class="modal-box">
-    <button class="modal-close" data-close="modal-lock">✕</button>
-    <h2>El cofre sobre la chimenea</h2>
-    <p>Un cerrojo de cuatro diales, cada uno con una letra. Solo el apellido del verdadero culpable lo abrirá.</p>
-    <div class="dial-row" id="dial-row"></div>
-    <button class="action" id="lock-submit-btn">Girar el cerrojo</button>
-    <div class="msg" id="lock-msg"></div>
+    <button class="modal-close" data-close="modal-cipher">✕</button>
+    <h2>Carta interceptada</h2>
+    <p>Un mensaje cifrado según la numeración de la Real Ordenanza. Descifrando cada número como una letra
+    del alfabeto correspondiente, la carta revela el punto de encuentro. ¿Cuál de estas opciones es la
+    correcta?</p>
+    <div id="cipher-options"></div>
+    <div class="msg" id="cipher-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: frascos (Nivel 1) -->
+<div class="modal-backdrop" id="modal-jars">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-jars">✕</button>
+    <h2>Los frascos del boticario</h2>
+    <p>Cuatro frascos con pesos grabados en onzas antiguas. El almanaque dice que deben tocarse en orden
+    creciente de peso para liberar el compartimento oculto del mostrador.</p>
+    <div id="jars-buttons"></div>
+    <div class="msg" id="jars-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: balanza (Nivel 2) -->
+<div class="modal-backdrop" id="modal-balanza">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-balanza">✕</button>
+    <h2>La balanza de las milicias</h2>
+    <p>El platillo de los <b>Patricios</b> pesa 600 y el de los <b>Arribeños</b> pesa 450.
+    ¿Qué peso hay que sumar al platillo de los Arribeños para equilibrar la balanza?</p>
+    <div id="balanza-options"></div>
+    <div class="msg" id="balanza-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: fechas (Nivel 2) -->
+<div class="modal-backdrop" id="modal-fechas">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-fechas">✕</button>
+    <h2>El panel de fechas</h2>
+    <p>Dos discos giratorios, cada uno con un año grabado. Hay que marcar el año de la <b>Reconquista</b>
+    de Buenos Aires y el año de la <b>Defensa</b> frente a las invasiones inglesas.</p>
+    <div class="dial-row" id="fechas-dials"></div>
+    <button class="action" id="fechas-submit" style="display:block; width:auto;">Girar el panel</button>
+    <div class="msg" id="fechas-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: reloj (Nivel 3) -->
+<div class="modal-backdrop" id="modal-reloj">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-reloj">✕</button>
+    <h2>El reloj de pie</h2>
+    <p>Sincronizá las manecillas con la hora en que comenzó el Cabildo Abierto del 22 de mayo de 1810.</p>
+    <div class="dial-row" id="reloj-dials"></div>
+    <button class="action" id="reloj-submit" style="display:block; width:auto;">Ajustar el reloj</button>
+    <div class="msg" id="reloj-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: caja fuerte (Nivel 3) -->
+<div class="modal-backdrop" id="modal-caja">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-caja">✕</button>
+    <h2>La caja fuerte</h2>
+    <p>Sobre la pared hay una pizarra con los votos del Cabildo Abierto. Según ese recuento,
+    ¿cuántos votos favorecieron la formación de la Junta patria?</p>
+    <div id="caja-options"></div>
+    <div class="msg" id="caja-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: proclama final (Nivel 3) -->
+<div class="modal-backdrop" id="modal-proclama">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-proclama">✕</button>
+    <h2>La Proclama Patriótica</h2>
+    <p id="proclama-text">El documento está listo sobre el escritorio, pero hace falta el sello oficial
+    para darle validez.</p>
+    <button class="action" id="proclama-seal-btn" style="display:block; width:auto;" disabled>Sellar y escapar</button>
+    <div class="msg" id="proclama-msg"></div>
   </div>
 </div>
 
@@ -238,7 +266,7 @@
 <div class="modal-backdrop" id="modal-hint">
   <div class="modal-box">
     <button class="modal-close" data-close="modal-hint">✕</button>
-    <h2>Una nota bajo la puerta</h2>
+    <h2>Un contacto anónimo susurra...</h2>
     <p id="hint-text"></p>
   </div>
 </div>
@@ -246,37 +274,45 @@
 <div id="toast"></div>
 
 <div id="win-screen">
-  <h2>El culpable ha sido descubierto</h2>
-  <p id="win-text"></p>
-  <button class="pill-btn" id="restart-btn" style="margin-top:10px;">Jugar de nuevo</button>
+  <h2>¡La Primera Junta ha nacido!</h2>
+  <p id="win-text">Sellaste la proclama a tiempo y escapaste del despacho antes de que la guardia real
+  derribara la puerta. El 25 de mayo de 1810, Buenos Aires amanece con su primer gobierno patrio.</p>
+  <button id="restart-btn" style="background:transparent;border:1px solid #c9a227;color:#c9a227;padding:9px 18px;border-radius:20px;font-size:13px;">Jugar de nuevo</button>
 </div>
 
 <script>
 (() => {
   const state = {
-    diaryRevealed: false,
-    chessSolved: false,
-    hasKey: false,
-    cabinetOpened: false,
-    solved: false,
+    level: 1,
+    cipherSolved: false, jarsSolved: false,
+    balanzaSolved: false, fechasSolved: false,
+    relojSolved: false, cajaSolved: false,
   };
+  const inventory = []; // { id, label, icon }
 
-  const SOLUTION = 'GRAY'; // apellido de Helena Gray, la culpable
+  const OBJECTIVES = {
+    1: 'Descubrí el punto de reunión secreto. Revisá la correspondencia y los almanaques.',
+    2: 'Encontrá la lista oficial de la Junta. Equilibrá las milicias y recordá las fechas de la Reconquista y Defensa.',
+    3: '¡Sellá la Proclama y escapá! Sincronizá el reloj con el Cabildo Abierto y resolvé la votación para abrir la caja fuerte.',
+  };
+  const BACKGROUNDS = { 1: 'botica-bg.jpg', 2: 'pasadizos-bg.jpg', 3: 'despacho-bg.jpg' };
 
-  const clues = []; // { title, text }
-  function addClue(title, text) {
-    if (clues.some(c => c.title === title)) return;
-    clues.push({ title, text });
-    renderNotebook();
+  function addItem(id, label, icon) {
+    if (inventory.some(i => i.id === id)) return;
+    inventory.push({ id, label, icon });
+    renderInventory();
   }
+  function hasItem(id) { return inventory.some(i => i.id === id); }
 
-  function renderNotebook() {
-    const el = document.getElementById('notebook-content');
-    if (clues.length === 0) {
-      el.innerHTML = '<div id="notebook-empty">Todavía no anotaste ninguna pista.</div>';
+  function renderInventory() {
+    const el = document.getElementById('inventory-bar');
+    if (inventory.length === 0) {
+      el.innerHTML = '<div id="inventory-empty">Todavía no tenés nada</div>';
       return;
     }
-    el.innerHTML = clues.map(c => `<div class="clue"><b>${c.title}</b>${c.text}</div>`).join('');
+    el.innerHTML = inventory.map(i =>
+      `<div class="inv-item"><div class="ic">${i.icon}</div><span>${i.label}</span></div>`
+    ).join('');
   }
 
   function showToast(text) {
@@ -284,176 +320,316 @@
     t.textContent = text;
     t.classList.add('show');
     clearTimeout(showToast._tid);
-    showToast._tid = setTimeout(() => t.classList.remove('show'), 2600);
+    showToast._tid = setTimeout(() => t.classList.remove('show'), 2800);
   }
 
   function openModal(id) { document.getElementById(id).classList.add('open'); }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
   document.querySelectorAll('[data-close]').forEach(btn => {
     btn.addEventListener('click', () => closeModal(btn.dataset.close));
+  });
+
+  function setLevel(n) {
+    state.level = n;
+    document.getElementById('scene').style.backgroundImage = `url('${BACKGROUNDS[n]}')`;
+    document.getElementById('objective-text').textContent = OBJECTIVES[n];
+    document.getElementById('hotspots-1').style.display = n === 1 ? 'block' : 'none';
+    document.getElementById('hotspots-2').style.display = n === 2 ? 'block' : 'none';
+    document.getElementById('hotspots-3').style.display = n === 3 ? 'block' : 'none';
+    document.getElementById('advance-btn').style.display = 'none';
+  }
+
+  function checkLevelComplete() {
+    const btn = document.getElementById('advance-btn');
+    if (state.level === 1 && state.cipherSolved && state.jarsSolved) {
+      addItem('mapa', 'Mapa de la reunión', '🗺️');
+      btn.textContent = 'Ir al Cabildo →';
+      btn.style.display = 'block';
+    } else if (state.level === 2 && state.balanzaSolved && state.fechasSolved) {
+      addItem('lista', 'Lista oficial de la Junta', '📜');
+      btn.textContent = 'Ir al despacho del Virrey →';
+      btn.style.display = 'block';
+    } else if (state.level === 3 && state.relojSolved && state.cajaSolved) {
+      addItem('sello', 'Sello oficial', '🖋️');
+    }
+  }
+
+  document.getElementById('advance-btn').addEventListener('click', () => {
+    if (state.level === 1) setLevel(2);
+    else if (state.level === 2) setLevel(3);
   });
 
   // ---------- Inicio ----------
   document.getElementById('start-btn').addEventListener('click', () => {
     document.getElementById('start-screen').style.display = 'none';
     document.getElementById('game').style.display = 'block';
+    setLevel(1);
   });
 
-  // ---------- Libreta ----------
-  const notebookPanel = document.getElementById('notebook-panel');
-  document.getElementById('notebook-toggle').addEventListener('click', () => {
-    notebookPanel.classList.toggle('open');
-  });
-
-  // ---------- Escritorio / diario ----------
-  document.getElementById('hs-desk').addEventListener('click', () => openModal('modal-diary'));
-
-  document.getElementById('reveal-ink-btn').addEventListener('click', () => {
-    if (state.diaryRevealed) {
-      document.getElementById('diary-msg').textContent = 'El calor ya reveló todo lo que tenía para mostrar.';
-      return;
-    }
-    state.diaryRevealed = true;
-    const p = document.getElementById('diary-hidden-text');
-    p.classList.remove('ink-hidden');
-    p.classList.add('ink-revealed');
-    document.getElementById('diary-msg').textContent = 'El calor de la vela revela una escritura oculta...';
-    addClue(
-      'Coartadas de la noche del crimen',
-      '<br>E.V.: estuvo en el club.<br>R.T.: en su residencia de campo.<br>M.A.: viajaba a Edimburgo.<br>H.G.: dice haber zarpado a Calais esa tarde.'
-    );
-  });
-
-  // ---------- Ajedrez ----------
-  const chessOptions = [
-    { label: 'Dxf6+ (la dama captura en f6, dando jaque)', correct: true },
-    { label: 'Txf6 (la torre captura en f6)', correct: false },
-    { label: 'Cd6+ (el caballo da jaque en d6)', correct: false },
-    { label: 'Ag5 (el alfil se retira a g5)', correct: false },
+  // ================= NIVEL 1 =================
+  const cipherOptions = [
+    { label: 'En la casa de Rodríguez Peña, medianoche.', correct: true },
+    { label: 'En el Fuerte, al amanecer.', correct: false },
+    { label: 'En la Recova, a las tres.', correct: false },
+    { label: 'En el puerto, al atardecer.', correct: false },
   ];
-  function renderChessOptions() {
-    const el = document.getElementById('chess-options');
+  function renderCipher() {
+    const el = document.getElementById('cipher-options');
     el.innerHTML = '';
-    chessOptions.forEach((opt, i) => {
+    cipherOptions.forEach(opt => {
       const b = document.createElement('button');
       b.className = 'action';
-      b.style.display = 'block';
-      b.style.width = '100%';
-      b.style.textAlign = 'left';
-      b.style.marginBottom = '6px';
       b.textContent = opt.label;
-      b.disabled = state.chessSolved;
+      b.disabled = state.cipherSolved;
       b.addEventListener('click', () => {
-        if (state.chessSolved) return;
+        if (state.cipherSolved) return;
         if (opt.correct) {
-          state.chessSolved = true;
-          state.hasKey = true;
-          document.getElementById('chess-msg').textContent =
-            'La pieza encaja y un compartimento se abre bajo el tablero: hay una llave pequeña dentro.';
-          addClue('Llave pequeña obtenida', '<br>Resolviste el acertijo de ajedrez y liberaste el compartimento oculto.');
-          renderChessOptions();
+          state.cipherSolved = true;
+          addItem('carta', 'Carta cifrada', '✉️');
+          document.getElementById('cipher-msg').textContent = 'La carta revela el punto de encuentro.';
+          renderCipher();
+          checkLevelComplete();
         } else {
-          document.getElementById('chess-msg').textContent = 'Esa no es la jugada. El libro habla de un sacrificio distinto.';
+          document.getElementById('cipher-msg').textContent = 'Esa combinación de números no da un mensaje coherente.';
         }
       });
       el.appendChild(b);
     });
   }
-  renderChessOptions();
-  document.getElementById('hs-chess').addEventListener('click', () => openModal('modal-chess'));
+  renderCipher();
+  document.getElementById('hs-cipher').addEventListener('click', () => openModal('modal-cipher'));
 
-  // ---------- Vitrina / gabinete ----------
-  document.getElementById('hs-cabinet').addEventListener('click', () => {
-    if (!state.hasKey) {
-      showToast('El libro hueco está cerrado con un pequeño cerrojo.');
-      return;
-    }
-    document.getElementById('cabinet-locked').style.display = 'none';
-    document.getElementById('cabinet-open').style.display = 'block';
-    document.getElementById('cabinet-title').textContent = 'El libro hueco, abierto';
-    openModal('modal-cabinet');
-    if (!state.cabinetOpened) {
-      state.cabinetOpened = true;
-      addClue('E.V. — Edmund Vane', '<br>El libro de socios del club confirma su coartada: estuvo ahí esa noche.');
-      addClue('R.T. — Rosalind Thorne', '<br>Carta del ama de llaves confirma su presencia en la residencia de campo.');
-      addClue('M.A. — Marcus Ashford', '<br>El boleto de tren coincide con el viaje a Edimburgo esa misma noche.');
-      addClue('H.G. — Helena Gray', '<br>Su boleto de barco a Calais está fechado dos días después del crimen. Mintió sobre su coartada.');
-    }
-  });
+  const jarsTarget = [1, 2, 3, 4];
+  let jarsProgress = [];
+  function renderJars() {
+    const el = document.getElementById('jars-buttons');
+    el.innerHTML = '';
+    const shuffled = [2, 4, 1, 3];
+    shuffled.forEach(w => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.style.display = 'inline-block';
+      b.style.width = '46%';
+      b.style.textAlign = 'center';
+      b.textContent = w + ' onza' + (w > 1 ? 's' : '');
+      b.disabled = state.jarsSolved;
+      b.addEventListener('click', () => {
+        if (state.jarsSolved) return;
+        jarsProgress.push(w);
+        const idx = jarsProgress.length - 1;
+        if (jarsProgress[idx] !== jarsTarget[idx]) {
+          document.getElementById('jars-msg').textContent = 'El orden no es correcto. Volvés a empezar.';
+          jarsProgress = [];
+          return;
+        }
+        if (jarsProgress.length === jarsTarget.length) {
+          state.jarsSolved = true;
+          addItem('llave', 'Llave antigua', '🗝️');
+          document.getElementById('jars-msg').textContent = 'El compartimento se abre: hay una llave antigua adentro.';
+          renderJars();
+          checkLevelComplete();
+        } else {
+          document.getElementById('jars-msg').textContent = `Correcto hasta ahora (${jarsProgress.length}/4).`;
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderJars();
+  document.getElementById('hs-jars').addEventListener('click', () => openModal('modal-jars'));
 
-  // ---------- Cofre / cerradura de letras ----------
-  const dialLetters = ['A', 'A', 'A', 'A'];
-  function renderDials() {
-    const row = document.getElementById('dial-row');
+  // ================= NIVEL 2 =================
+  const balanzaOptions = [100, 150, 200, 250];
+  function renderBalanza() {
+    const el = document.getElementById('balanza-options');
+    el.innerHTML = '';
+    balanzaOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.style.display = 'inline-block';
+      b.style.width = '46%';
+      b.style.textAlign = 'center';
+      b.textContent = v;
+      b.disabled = state.balanzaSolved;
+      b.addEventListener('click', () => {
+        if (state.balanzaSolved) return;
+        if (v === 150) {
+          state.balanzaSolved = true;
+          document.getElementById('balanza-msg').textContent = 'La balanza queda perfectamente equilibrada.';
+          renderBalanza();
+          checkLevelComplete();
+        } else {
+          document.getElementById('balanza-msg').textContent = 'La balanza sigue inclinada. Ese peso no es correcto.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderBalanza();
+  document.getElementById('hs-balanza').addEventListener('click', () => openModal('modal-balanza'));
+
+  const fechasYears = [1805, 1805];
+  const YEAR_MIN = 1805, YEAR_MAX = 1810;
+  function renderFechaDials() {
+    const row = document.getElementById('fechas-dials');
     row.innerHTML = '';
-    dialLetters.forEach((letter, i) => {
+    const labels = ['Reconquista', 'Defensa'];
+    fechasYears.forEach((y, i) => {
       const d = document.createElement('div');
       d.className = 'dial';
       d.innerHTML = `
+        <span class="lbl">${labels[i]}</span>
         <button data-i="${i}" data-dir="1">▲</button>
-        <div class="letter">${letter}</div>
+        <div class="val">${y}</div>
         <button data-i="${i}" data-dir="-1">▼</button>
       `;
       row.appendChild(d);
     });
     row.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (state.fechasSolved) return;
         const i = parseInt(btn.dataset.i, 10);
         const dir = parseInt(btn.dataset.dir, 10);
-        let code = dialLetters[i].charCodeAt(0) - 65;
-        code = (code + dir + 26) % 26;
-        dialLetters[i] = String.fromCharCode(65 + code);
-        renderDials();
+        let y = fechasYears[i] + dir;
+        if (y < YEAR_MIN) y = YEAR_MAX;
+        if (y > YEAR_MAX) y = YEAR_MIN;
+        fechasYears[i] = y;
+        renderFechaDials();
       });
     });
   }
-  renderDials();
-
-  document.getElementById('hs-chest').addEventListener('click', () => openModal('modal-lock'));
-
-  document.getElementById('lock-submit-btn').addEventListener('click', () => {
-    if (state.solved) return;
-    const guess = dialLetters.join('');
-    if (guess === SOLUTION) {
-      state.solved = true;
-      document.getElementById('lock-msg').textContent = 'El cofre se abre. Dentro está la llave maestra de la puerta principal.';
-      addClue('Llave maestra', '<br>El cofre reveló la verdad: Helena Gray mintió sobre su paradero.');
-      setTimeout(() => {
-        closeModal('modal-lock');
-        document.getElementById('win-text').textContent =
-          'Helena Gray afirmó haber zarpado hacia Calais la noche del crimen, pero su propio boleto de barco demuestra que mintió. Con la llave maestra en mano, abrís la puerta principal justo antes de que llegue la policía.';
-        document.getElementById('win-screen').style.display = 'flex';
-      }, 1400);
+  renderFechaDials();
+  document.getElementById('hs-fechas').addEventListener('click', () => openModal('modal-fechas'));
+  document.getElementById('fechas-submit').addEventListener('click', () => {
+    if (state.fechasSolved) return;
+    if (fechasYears[0] === 1806 && fechasYears[1] === 1807) {
+      state.fechasSolved = true;
+      document.getElementById('fechas-msg').textContent = 'El panel encaja y se traba en su lugar: las fechas son correctas.';
+      checkLevelComplete();
     } else {
-      document.getElementById('lock-msg').textContent = 'La combinación no es correcta. El cerrojo no cede.';
+      document.getElementById('fechas-msg').textContent = 'El panel no cede. Esas no son las fechas correctas.';
     }
+  });
+
+  // ================= NIVEL 3 =================
+  const relojTime = [12, 0]; // hora (1-12), minuto (0/15/30/45)
+  function renderRelojDials() {
+    const row = document.getElementById('reloj-dials');
+    row.innerHTML = '';
+    const labels = ['Hora', 'Minuto'];
+    relojTime.forEach((v, i) => {
+      const display = i === 0 ? v : String(v).padStart(2, '0');
+      const d = document.createElement('div');
+      d.className = 'dial';
+      d.innerHTML = `
+        <span class="lbl">${labels[i]}</span>
+        <button data-i="${i}" data-dir="1">▲</button>
+        <div class="val">${display}</div>
+        <button data-i="${i}" data-dir="-1">▼</button>
+      `;
+      row.appendChild(d);
+    });
+    row.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (state.relojSolved) return;
+        const i = parseInt(btn.dataset.i, 10);
+        const dir = parseInt(btn.dataset.dir, 10);
+        if (i === 0) {
+          let h = relojTime[0] + dir;
+          if (h < 1) h = 12; if (h > 12) h = 1;
+          relojTime[0] = h;
+        } else {
+          let m = relojTime[1] + dir * 15;
+          if (m < 0) m = 45; if (m > 45) m = 0;
+          relojTime[1] = m;
+        }
+        renderRelojDials();
+      });
+    });
+  }
+  renderRelojDials();
+  document.getElementById('hs-reloj').addEventListener('click', () => openModal('modal-reloj'));
+  document.getElementById('reloj-submit').addEventListener('click', () => {
+    if (state.relojSolved) return;
+    if (relojTime[0] === 9 && relojTime[1] === 0) {
+      state.relojSolved = true;
+      document.getElementById('reloj-msg').textContent = 'El péndulo se detiene un instante: la hora es correcta.';
+      checkLevelComplete();
+    } else {
+      document.getElementById('reloj-msg').textContent = 'Las manecillas no encajan con la hora del Cabildo.';
+    }
+  });
+
+  const cajaOptions = [69, 155, 200, 251];
+  function renderCaja() {
+    const el = document.getElementById('caja-options');
+    el.innerHTML = '';
+    cajaOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.style.display = 'inline-block';
+      b.style.width = '46%';
+      b.style.textAlign = 'center';
+      b.textContent = v;
+      b.disabled = state.cajaSolved;
+      b.addEventListener('click', () => {
+        if (state.cajaSolved) return;
+        if (v === 155) {
+          state.cajaSolved = true;
+          document.getElementById('caja-msg').textContent = 'El dial gira y la caja fuerte se abre.';
+          renderCaja();
+          checkLevelComplete();
+        } else {
+          document.getElementById('caja-msg').textContent = 'La caja no responde a ese número.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderCaja();
+  document.getElementById('hs-caja').addEventListener('click', () => openModal('modal-caja'));
+
+  document.getElementById('hs-proclama').addEventListener('click', () => {
+    const btn = document.getElementById('proclama-seal-btn');
+    if (hasItem('sello')) {
+      btn.disabled = false;
+      document.getElementById('proclama-text').textContent =
+        'Tenés el sello oficial. Es momento de sellar la proclama y escapar antes de que llegue la guardia.';
+    } else {
+      btn.disabled = true;
+      document.getElementById('proclama-text').textContent =
+        'El documento está listo sobre el escritorio, pero hace falta el sello oficial para darle validez.';
+    }
+    openModal('modal-proclama');
+  });
+  document.getElementById('proclama-seal-btn').addEventListener('click', () => {
+    if (!hasItem('sello')) return;
+    closeModal('modal-proclama');
+    document.getElementById('win-screen').style.display = 'flex';
   });
 
   // ---------- Pistas contextuales ----------
   document.getElementById('hint-btn').addEventListener('click', () => {
     let text;
-    if (!state.diaryRevealed) {
-      text = 'El calor despierta lo que la tinta invisible esconde. Acercá la última página del diario a una llama.';
-    } else if (!state.chessSolved) {
-      text = 'Los grandes maestros a veces sacrifican la pieza más valiosa para forzar el final. Mirá bien el tablero.';
-    } else if (!state.cabinetOpened) {
-      text = 'Ya tenés una llave pequeña. Probá abrir aquello que estaba cerrado con llave.';
-    } else if (!state.solved) {
-      text = 'Cruzá las coartadas del diario con las fechas de los boletos. Alguien no estaba donde decía estar.';
+    if (state.level === 1) {
+      if (!state.cipherSolved) text = 'Un mensaje cifrado no siempre esconde algo complicado. Probá leerlo como si cada número fuera una letra.';
+      else if (!state.jarsSolved) text = 'El orden de los frascos importa: de más liviano a más pesado.';
+      else text = 'Ya tenés el mapa. Continuá hacia el Cabildo.';
+    } else if (state.level === 2) {
+      if (!state.balanzaSolved) text = 'La diferencia entre 600 y 450 te va a decir cuánto falta para equilibrar.';
+      else if (!state.fechasSolved) text = 'La Reconquista de Buenos Aires fue en 1806. La Defensa, al año siguiente.';
+      else text = 'Ya tenés la lista de la Junta. Continuá hacia el despacho del Virrey.';
     } else {
-      text = 'Ya descubriste la verdad. Solo falta cruzar el umbral.';
+      if (!state.relojSolved) text = 'El Cabildo Abierto del 22 de mayo comenzó por la mañana, a las nueve en punto.';
+      else if (!state.cajaSolved) text = 'La pizarra en la pared tiene los votos anotados. Sumá la columna de los criollos.';
+      else text = 'Ya tenés el sello. Andá hasta la proclama sobre el escritorio y sellala.';
     }
     document.getElementById('hint-text').textContent = text;
     openModal('modal-hint');
   });
 
-  // ---------- Reiniciar ----------
-  document.getElementById('restart-btn').addEventListener('click', () => {
-    location.reload();
-  });
+  document.getElementById('restart-btn').addEventListener('click', () => location.reload());
 
-  // ---------- Service worker ----------
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').catch(() => {});

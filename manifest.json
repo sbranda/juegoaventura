@@ -1,13 +1,13 @@
 {
-  "name": "El Legado del Coleccionista",
-  "short_name": "El Legado",
-  "description": "Escape room victoriano de deducción: descubrí quién asesinó al anticuario antes de que llegue la policía",
+  "name": "1810: La Conspiración de Mayo",
+  "short_name": "Conspiración 1810",
+  "description": "Escape room histórico: infiltrate en la Semana de Mayo de 1810 y sellá la proclama patriótica",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#120d09",
-  "theme_color": "#241a12",
+  "background_color": "#0f0c09",
+  "theme_color": "#1a1410",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

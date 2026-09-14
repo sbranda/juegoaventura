@@ -1657,7 +1657,7 @@
       else if (!state.tintaSolved) text = 'El manual habla de más aceite que negro de humo — bastante más.';
       else if (!state.prensaSolved) text = 'La fuerza pareja en los dos tornillos es lo que evita romper la prensa.';
       else text = 'La proclama falsa está lista. Continuá hacia la Catedral.';
-    } else {
+    } else if (state.level === 5) {
       if (!state.cifradoSolved) text = 'Los Salmos se leyeron de menor a mayor número esa mañana.';
       else if (!state.pesoSolved) text = 'Nueve pesos iguales más uno que pesa el doble: sumalos todos.';
       else if (!state.campanarioSolved) text = 'Es el nudo preferido de los marineros para tensar sin que se corra.';
@@ -1667,7 +1667,7 @@
       else if (!state.cerrojoMilitarSolved) text = 'El general manda sobre el coronel, y el coronel sobre el capitán.';
       else if (!state.balconSolved) text = 'No presentes el Acta mientras la multitud grita. Esperá el silencio exacto.';
       else text = 'El Acta fue aclamada. Continuá hacia el Cabildo.';
-    } else {
+    } else if (state.level === 7) {
       if (!state.verificadoSolved) text = 'La marca de agua solo se ve a contraluz. Acercá el documento a la lámpara.';
       else text = 'Ya verificaste el Acta. Solo falta colocar el sello final.';
     } else if (state.level === 8) {
@@ -1675,7 +1675,7 @@
       else if (!state.polvorinSolved) text = 'El "Clock word" marca 05:34 — ajustá los diales para que coincidan exacto.';
       else if (!state.banderaBajadaSolved) text = 'El ballestrinque doble aguanta mejor que cualquier nudo simple, con tensión media.';
       else text = 'El Fuerte está asegurado. Continuá hacia la Aduana.';
-    } else {
+    } else if (state.level === 9) {
       if (!state.manifiestoSolved) text = 'Una caja de "Textiles" no debería pesar lo mismo que una de "Herramientas".';
       else if (!state.gruaSolved) text = 'Ni muy brusco ni muy suave: el punto medio es el que no rompe nada.';
       else if (!state.mosaicoSolved) text = 'Empezá por el sol en el centro del mosaico y seguí hacia afuera.';

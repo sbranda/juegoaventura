@@ -177,6 +177,14 @@
       <button class="hotspot" id="hs-peso" style="left:63%; top:58%;" title="Peso del pecado">⚖️</button>
       <button class="hotspot" id="hs-campanario" style="left:15%; top:30%;" title="Campanario">🔔</button>
     </div>
+    <div id="hotspots-6" style="display:none;">
+      <button class="hotspot" id="hs-banderas" style="left:45%; top:38%;" title="Panel de banderas">🚩</button>
+      <button class="hotspot" id="hs-cerrojo-militar" style="left:78%; top:44%;" title="Cerrojo militar">🎖️</button>
+      <button class="hotspot" id="hs-balcon" style="left:22%; top:35%; display:none;" title="Balcón">📢</button>
+    </div>
+    <div id="hotspots-7" style="display:none;">
+      <button class="hotspot" id="hs-verificar" style="left:47%; top:60%;" title="Verificar el Acta">🕯️</button>
+    </div>
   </div>
 
   <div id="objective-banner"><b>Objetivo:</b> <span id="objective-text"></span></div>
@@ -353,6 +361,56 @@
   </div>
 </div>
 
+<!-- Modal: código de banderas (Nivel 6) -->
+<div class="modal-backdrop" id="modal-banderas">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-banderas">✕</button>
+    <h2>El panel de banderas</h2>
+    <p>Un mensaje interceptado describe el cambio de guardia del Fuerte en código naval. ¿Qué combinación
+    de banderas ordena a los soldados abandonar temporalmente su posición?</p>
+    <div id="banderas-options"></div>
+    <div class="msg" id="banderas-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: cerrojo militar (Nivel 6) -->
+<div class="modal-backdrop" id="modal-cerrojo-militar">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-cerrojo-militar">✕</button>
+    <h2>El cerrojo militar</h2>
+    <p>Un organigrama en el escritorio del ayudante muestra la jerarquía de mando. ¿En qué orden hay que
+    alinear los símbolos de los tres rangos en la cerradura?</p>
+    <div id="cerrojo-militar-options"></div>
+    <div class="msg" id="cerrojo-militar-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: el balcón (Nivel 6, clímax) -->
+<div class="modal-backdrop" id="modal-balcon">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-balcon">✕</button>
+    <h2>El balcón de la libertad</h2>
+    <p>La multitud espera abajo. Solo hay que presentar el Acta en el momento justo, cuando la plaza
+    hace silencio.</p>
+    <p><b>Estado de la multitud:</b> <span id="balcon-estado">...</span></p>
+    <button class="action" id="balcon-presentar-btn" style="display:block; width:auto;">Presentar el Acta</button>
+    <div class="msg" id="balcon-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: verificación final (Epílogo) -->
+<div class="modal-backdrop" id="modal-verificar">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-verificar">✕</button>
+    <h2>Verificación final</h2>
+    <p id="verificar-text">Saavedra, Moreno y Paso esperan en silencio. Antes de dar el Acta por válida,
+    hay que comprobar que no fue adulterada, comparándola con el pergamino original firmado por Belgrano.</p>
+    <button class="action" id="verificar-luz-btn" style="display:block; width:auto;">Acercar a la luz de la lámpara</button>
+    <button class="action" id="verificar-sello-btn" style="display:block; width:auto;" disabled>Colocar el sello final</button>
+    <div class="msg" id="verificar-msg"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <div id="win-screen">
@@ -371,6 +429,8 @@
     relojSolved: false, cajaSolved: false,
     tiposSolved: false, tintaSolved: false, prensaSolved: false,
     cifradoSolved: false, pesoSolved: false, campanarioSolved: false,
+    banderasSolved: false, cerrojoMilitarSolved: false, balconSolved: false,
+    verificadoSolved: false,
   };
   const inventory = []; // { id, label, icon }
 
@@ -380,10 +440,13 @@
     3: '¡Sellá la Proclama y escapá! Sincronizá el reloj con el Cabildo Abierto y resolvé la votación para abrir la caja fuerte.',
     4: '¡Tirá la proclama contrapropaganda! Componé el tipo en espejo, mezclá la tinta correcta y ajustá la presión de la prensa antes del amanecer.',
     5: '¡Abrí la Catedral y tocá las campanas! Descifrá el Cifrado Litúrgico para los cerrojos y equilibrá el "Peso del Pecado" para mover la puerta.',
+    6: '¡Presentá el Acta! Distraé a la guardia con el código de banderas, abrí el cerrojo militar y salí al balcón.',
+    7: 'Entregá y consagrá. Verificá la autenticidad del Acta contra el original de Belgrano usando la lámpara de aceite.',
   };
   const BACKGROUNDS = {
     1: 'botica-bg.jpg', 2: 'pasadizos-bg.jpg', 3: 'despacho-bg.jpg',
     4: 'imprenta-bg.jpg', 5: 'catedral-bg.jpg',
+    6: 'fuerte-bg.jpg', 7: 'consagracion-bg.jpg',
   };
 
   function addItem(id, label, icon) {
@@ -422,10 +485,14 @@
     state.level = n;
     document.getElementById('scene').style.backgroundImage = `url('${BACKGROUNDS[n]}')`;
     document.getElementById('objective-text').textContent = OBJECTIVES[n];
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 7; i++) {
       document.getElementById('hotspots-' + i).style.display = (n === i) ? 'block' : 'none';
     }
     document.getElementById('advance-btn').style.display = 'none';
+    if (n === 6) {
+      addItem('acta', 'Acta de la Junta', '📜');
+      document.getElementById('hs-balcon').style.display = 'none';
+    }
   }
 
   function checkLevelComplete() {
@@ -435,7 +502,7 @@
       btn.textContent = 'Ir al Cabildo →';
       btn.style.display = 'block';
     } else if (state.level === 2 && state.balanzaSolved && state.fechasSolved) {
-      addItem('lista', 'Lista oficial de la Junta', '📜');
+      addItem('lista', 'Lista oficial de la Junta', '📋');
       btn.textContent = 'Ir al despacho del Virrey →';
       btn.style.display = 'block';
     } else if (state.level === 3 && state.relojSolved && state.cajaSolved) {
@@ -446,15 +513,26 @@
       btn.style.display = 'block';
     } else if (state.level === 5 && state.cifradoSolved && state.pesoSolved && state.campanarioSolved) {
       addItem('campanas', 'Campanas repicando', '🔔');
-      triggerFinalWin();
+      btn.textContent = 'Ir a la Torre del Fuerte →';
+      btn.style.display = 'block';
+    } else if (state.level === 6) {
+      if (state.balconSolved) {
+        btn.textContent = 'Ir al Cabildo Abierto →';
+        btn.style.display = 'block';
+      } else if (state.banderasSolved && state.cerrojoMilitarSolved) {
+        if (document.getElementById('hs-balcon').style.display !== 'flex') {
+          document.getElementById('hs-balcon').style.display = 'flex';
+          showToast('El paso está despejado. Salí al balcón para presentar el Acta.');
+        }
+      }
     }
   }
 
   function triggerFinalWin() {
     document.getElementById('win-text').textContent =
-      'Las campanas de la Catedral repican sobre la Plaza de la Victoria. El pueblo se congrega mientras ' +
-      'la proclama contrapropaganda circula por la ciudad. El 25 de mayo de 1810, la Primera Junta queda ' +
-      'formada y Buenos Aires amanece con su primer gobierno patrio.';
+      'Ante Saavedra, Moreno y Paso, el Acta queda verificada y consagrada: la marca del Sol de Mayo confirma ' +
+      'que es genuina. La Primera Junta ha nacido. El 25 de mayo de 1810, Buenos Aires amanece con su primer ' +
+      'gobierno patrio, y las campanas y la multitud en la Plaza de la Victoria celebran el comienzo de una nueva era.';
     document.getElementById('win-screen').style.display = 'flex';
   }
 
@@ -462,6 +540,8 @@
     if (state.level === 1) setLevel(2);
     else if (state.level === 2) setLevel(3);
     else if (state.level === 4) setLevel(5);
+    else if (state.level === 5) setLevel(6);
+    else if (state.level === 6) setLevel(7);
   });
 
   // ---------- Inicio ----------
@@ -884,6 +964,116 @@
   renderCampanario();
   document.getElementById('hs-campanario').addEventListener('click', () => openModal('modal-campanario'));
 
+  // ================= NIVEL 6 =================
+  const banderasOptions = [
+    'Bandera azul-amarilla: mantener posición',
+    'Bandera roja-blanca: relevo de guardia',
+    'Bandera verde-negra: alerta general',
+    'Bandera blanca-azul: avanzar',
+  ];
+  function renderBanderas() {
+    const el = document.getElementById('banderas-options');
+    el.innerHTML = '';
+    banderasOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.banderasSolved;
+      b.addEventListener('click', () => {
+        if (state.banderasSolved) return;
+        if (v === 'Bandera roja-blanca: relevo de guardia') {
+          state.banderasSolved = true;
+          document.getElementById('banderas-msg').textContent = 'Los guardias reciben la orden y se retiran un momento.';
+          renderBanderas();
+          checkLevelComplete();
+        } else {
+          document.getElementById('banderas-msg').textContent = 'Los guardias no se mueven. Ese no es el mensaje correcto.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderBanderas();
+  document.getElementById('hs-banderas').addEventListener('click', () => openModal('modal-banderas'));
+
+  const cerrojoMilitarOptions = [
+    'Capitán → Coronel → General',
+    'General → Coronel → Capitán',
+    'Coronel → General → Capitán',
+    'Capitán → General → Coronel',
+  ];
+  function renderCerrojoMilitar() {
+    const el = document.getElementById('cerrojo-militar-options');
+    el.innerHTML = '';
+    cerrojoMilitarOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.cerrojoMilitarSolved;
+      b.addEventListener('click', () => {
+        if (state.cerrojoMilitarSolved) return;
+        if (v === 'General → Coronel → Capitán') {
+          state.cerrojoMilitarSolved = true;
+          document.getElementById('cerrojo-militar-msg').textContent = 'Los símbolos encajan según la cadena de mando. El cerrojo cede.';
+          renderCerrojoMilitar();
+          checkLevelComplete();
+        } else {
+          document.getElementById('cerrojo-militar-msg').textContent = 'El cerrojo no gira. Ese no es el orden de mando.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderCerrojoMilitar();
+  document.getElementById('hs-cerrojo-militar').addEventListener('click', () => openModal('modal-cerrojo-militar'));
+
+  let balconInterval = null;
+  let balconState = 'grita';
+  function balconTick() {
+    balconState = Math.random() < 0.32 ? 'silencio' : 'grita';
+    document.getElementById('balcon-estado').textContent =
+      balconState === 'silencio' ? 'Silencio...' : 'La multitud grita y espera.';
+  }
+  document.getElementById('hs-balcon').addEventListener('click', () => {
+    openModal('modal-balcon');
+    if (!state.balconSolved) {
+      balconTick();
+      balconInterval = setInterval(balconTick, 1100);
+    } else {
+      document.getElementById('balcon-estado').textContent = 'El Acta ya fue presentada ante el pueblo.';
+    }
+  });
+  document.querySelector('[data-close="modal-balcon"]').addEventListener('click', () => {
+    if (balconInterval) { clearInterval(balconInterval); balconInterval = null; }
+  });
+  document.getElementById('balcon-presentar-btn').addEventListener('click', () => {
+    if (state.balconSolved) return;
+    if (balconState === 'silencio') {
+      state.balconSolved = true;
+      if (balconInterval) { clearInterval(balconInterval); balconInterval = null; }
+      document.getElementById('balcon-estado').textContent = 'El Acta ya fue presentada ante el pueblo.';
+      document.getElementById('balcon-msg').textContent = '¡La plaza aclama la noticia! El pueblo apoya a la Junta.';
+      checkLevelComplete();
+    } else {
+      document.getElementById('balcon-msg').textContent = 'La multitud sigue gritando. Esperá el silencio.';
+    }
+  });
+
+  // ================= EPÍLOGO (Nivel 7) =================
+  document.getElementById('hs-verificar').addEventListener('click', () => openModal('modal-verificar'));
+  document.getElementById('verificar-luz-btn').addEventListener('click', () => {
+    if (state.verificadoSolved) return;
+    state.verificadoSolved = true;
+    document.getElementById('verificar-msg').textContent =
+      'A contraluz aparece el Sol de Mayo en la marca de agua: el Acta es auténtica.';
+    document.getElementById('verificar-sello-btn').disabled = false;
+  });
+  document.getElementById('verificar-sello-btn').addEventListener('click', () => {
+    if (!state.verificadoSolved) return;
+    closeModal('modal-verificar');
+    triggerFinalWin();
+  });
+
   // ---------- Pistas contextuales ----------
   document.getElementById('hint-btn').addEventListener('click', () => {
     let text;
@@ -909,6 +1099,14 @@
       else if (!state.pesoSolved) text = 'Nueve pesos iguales más uno que pesa el doble: sumalos todos.';
       else if (!state.campanarioSolved) text = 'Es el nudo preferido de los marineros para tensar sin que se corra.';
       else text = 'Las campanas están listas para repicar.';
+    } else if (state.level === 6) {
+      if (!state.banderasSolved) text = 'Rojo y blanco no significa ataque — pensá en qué orden se da un relevo.';
+      else if (!state.cerrojoMilitarSolved) text = 'El general manda sobre el coronel, y el coronel sobre el capitán.';
+      else if (!state.balconSolved) text = 'No presentes el Acta mientras la multitud grita. Esperá el silencio exacto.';
+      else text = 'El Acta fue aclamada. Continuá hacia el Cabildo.';
+    } else {
+      if (!state.verificadoSolved) text = 'La marca de agua solo se ve a contraluz. Acercá el documento a la lámpara.';
+      else text = 'Ya verificaste el Acta. Solo falta colocar el sello final.';
     }
     document.getElementById('hint-text').textContent = text;
     openModal('modal-hint');

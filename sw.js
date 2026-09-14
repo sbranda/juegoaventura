@@ -1,5 +1,5 @@
-// Recordatorio: subir este número en cada deploy para invalidar el cache viejo
-const CACHE_NAME = 'legado-coleccionista-v2';
+const CACHE_PREFIX = 'conspiracion-mayo-';
+const CACHE_NAME = CACHE_PREFIX + 'v1';
 
 const ASSETS = [
   './',
@@ -8,7 +8,9 @@ const ASSETS = [
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png',
-  './study-bg.jpg',
+  './botica-bg.jpg',
+  './pasadizos-bg.jpg',
+  './despacho-bg.jpg',
 ];
 
 self.addEventListener('install', (event) => {
@@ -22,7 +24,9 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys
+          .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
       )
     )
   );

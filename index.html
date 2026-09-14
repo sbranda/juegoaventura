@@ -167,6 +167,16 @@
       <button class="hotspot" id="hs-caja" style="left:51%; top:44%;" title="Caja fuerte">🔒</button>
       <button class="hotspot" id="hs-proclama" style="left:76%; top:75%;" title="Proclama">📜</button>
     </div>
+    <div id="hotspots-4" style="display:none;">
+      <button class="hotspot" id="hs-tipos" style="left:27%; top:38%;" title="Cajones de tipos">🔤</button>
+      <button class="hotspot" id="hs-tinta" style="left:80%; top:65%;" title="Tinta y viscosímetro">🧴</button>
+      <button class="hotspot" id="hs-prensa" style="left:39%; top:38%;" title="Prensa de prueba">🗜️</button>
+    </div>
+    <div id="hotspots-5" style="display:none;">
+      <button class="hotspot" id="hs-cifrado" style="left:80%; top:38%;" title="Cifrado litúrgico">🔐</button>
+      <button class="hotspot" id="hs-peso" style="left:63%; top:58%;" title="Peso del pecado">⚖️</button>
+      <button class="hotspot" id="hs-campanario" style="left:15%; top:30%;" title="Campanario">🔔</button>
+    </div>
   </div>
 
   <div id="objective-banner"><b>Objetivo:</b> <span id="objective-text"></span></div>
@@ -271,6 +281,78 @@
   </div>
 </div>
 
+<!-- Modal: tipos móviles (Nivel 4) -->
+<div class="modal-backdrop" id="modal-tipos">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-tipos">✕</button>
+    <h2>El componedor</h2>
+    <p>Los cajones de tipos de plomo están revueltos. Hay que elegir la frase correcta para armar
+    la proclama falsa, letra por letra, en espejo, como haría un tipógrafo real.</p>
+    <div id="tipos-options"></div>
+    <div class="msg" id="tipos-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: tinta (Nivel 4) -->
+<div class="modal-backdrop" id="modal-tinta">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-tinta">✕</button>
+    <h2>La tinta y el viscosímetro</h2>
+    <p>El manual de imprenta antiguo da la fórmula exacta para que la tinta agarre en papel de mala
+    calidad. ¿Qué proporción de aceite de linaza y negro de humo hay que mezclar?</p>
+    <div id="tinta-options"></div>
+    <div class="msg" id="tinta-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: prensa (Nivel 4) -->
+<div class="modal-backdrop" id="modal-prensa">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-prensa">✕</button>
+    <h2>La prensa de prueba</h2>
+    <p>El mecanismo de presión está trabado. Para que la copia salga legible sin romper la máquina,
+    hay que ajustar los dos tornillos laterales por igual.</p>
+    <div id="prensa-options"></div>
+    <div class="msg" id="prensa-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: cifrado litúrgico (Nivel 5) -->
+<div class="modal-backdrop" id="modal-cifrado">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-cifrado">✕</button>
+    <h2>El cifrado litúrgico</h2>
+    <p>La placa de bronce tiene grabados los Salmos leídos en la misa del día. El orden de sus números
+    revela la combinación del cerrojo.</p>
+    <div id="cifrado-options"></div>
+    <div class="msg" id="cifrado-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: peso del pecado (Nivel 5) -->
+<div class="modal-backdrop" id="modal-peso">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-peso">✕</button>
+    <h2>El peso del pecado</h2>
+    <p>La puerta equivale a nueve pesos de bronce de 45 libras cada uno, grabados con los Mandamientos,
+    más uno especial que pesa el doble. ¿Cuánto hay que cargar en la balanza auxiliar para igualarla?</p>
+    <div id="peso-options"></div>
+    <div class="msg" id="peso-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: campanario (Nivel 5) -->
+<div class="modal-backdrop" id="modal-campanario">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-campanario">✕</button>
+    <h2>El campanario</h2>
+    <p>Las cuerdas de las campanas están cortadas. Hay cáñamo de repuesto: solo falta el nudo marinero
+    correcto para unir los pedales a los badajos.</p>
+    <div id="campanario-options"></div>
+    <div class="msg" id="campanario-msg"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <div id="win-screen">
@@ -287,6 +369,8 @@
     cipherSolved: false, jarsSolved: false,
     balanzaSolved: false, fechasSolved: false,
     relojSolved: false, cajaSolved: false,
+    tiposSolved: false, tintaSolved: false, prensaSolved: false,
+    cifradoSolved: false, pesoSolved: false, campanarioSolved: false,
   };
   const inventory = []; // { id, label, icon }
 
@@ -294,8 +378,13 @@
     1: 'Descubrí el punto de reunión secreto. Revisá la correspondencia y los almanaques.',
     2: 'Encontrá la lista oficial de la Junta. Equilibrá las milicias y recordá las fechas de la Reconquista y Defensa.',
     3: '¡Sellá la Proclama y escapá! Sincronizá el reloj con el Cabildo Abierto y resolvé la votación para abrir la caja fuerte.',
+    4: '¡Tirá la proclama contrapropaganda! Componé el tipo en espejo, mezclá la tinta correcta y ajustá la presión de la prensa antes del amanecer.',
+    5: '¡Abrí la Catedral y tocá las campanas! Descifrá el Cifrado Litúrgico para los cerrojos y equilibrá el "Peso del Pecado" para mover la puerta.',
   };
-  const BACKGROUNDS = { 1: 'botica-bg.jpg', 2: 'pasadizos-bg.jpg', 3: 'despacho-bg.jpg' };
+  const BACKGROUNDS = {
+    1: 'botica-bg.jpg', 2: 'pasadizos-bg.jpg', 3: 'despacho-bg.jpg',
+    4: 'imprenta-bg.jpg', 5: 'catedral-bg.jpg',
+  };
 
   function addItem(id, label, icon) {
     if (inventory.some(i => i.id === id)) return;
@@ -333,9 +422,9 @@
     state.level = n;
     document.getElementById('scene').style.backgroundImage = `url('${BACKGROUNDS[n]}')`;
     document.getElementById('objective-text').textContent = OBJECTIVES[n];
-    document.getElementById('hotspots-1').style.display = n === 1 ? 'block' : 'none';
-    document.getElementById('hotspots-2').style.display = n === 2 ? 'block' : 'none';
-    document.getElementById('hotspots-3').style.display = n === 3 ? 'block' : 'none';
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById('hotspots-' + i).style.display = (n === i) ? 'block' : 'none';
+    }
     document.getElementById('advance-btn').style.display = 'none';
   }
 
@@ -351,12 +440,28 @@
       btn.style.display = 'block';
     } else if (state.level === 3 && state.relojSolved && state.cajaSolved) {
       addItem('sello', 'Sello oficial', '🖋️');
+    } else if (state.level === 4 && state.tiposSolved && state.tintaSolved && state.prensaSolved) {
+      addItem('contrapropaganda', 'Proclama contrapropaganda', '📰');
+      btn.textContent = 'Ir a la Catedral →';
+      btn.style.display = 'block';
+    } else if (state.level === 5 && state.cifradoSolved && state.pesoSolved && state.campanarioSolved) {
+      addItem('campanas', 'Campanas repicando', '🔔');
+      triggerFinalWin();
     }
+  }
+
+  function triggerFinalWin() {
+    document.getElementById('win-text').textContent =
+      'Las campanas de la Catedral repican sobre la Plaza de la Victoria. El pueblo se congrega mientras ' +
+      'la proclama contrapropaganda circula por la ciudad. El 25 de mayo de 1810, la Primera Junta queda ' +
+      'formada y Buenos Aires amanece con su primer gobierno patrio.';
+    document.getElementById('win-screen').style.display = 'flex';
   }
 
   document.getElementById('advance-btn').addEventListener('click', () => {
     if (state.level === 1) setLevel(2);
     else if (state.level === 2) setLevel(3);
+    else if (state.level === 4) setLevel(5);
   });
 
   // ---------- Inicio ----------
@@ -605,8 +710,179 @@
   document.getElementById('proclama-seal-btn').addEventListener('click', () => {
     if (!hasItem('sello')) return;
     closeModal('modal-proclama');
-    document.getElementById('win-screen').style.display = 'flex';
+    showToast('La proclama está sellada. Ahora hay que imprimir la contrapropaganda antes del amanecer.');
+    setLevel(4);
   });
+
+  // ================= NIVEL 4 =================
+  const tiposOptions = [
+    { label: 'El pueblo quiere saber de qué se trata.', correct: true },
+    { label: 'El pueblo exige justicia inmediata.', correct: false },
+    { label: 'El pueblo aclama al virrey Cisneros.', correct: false },
+    { label: 'El pueblo guarda silencio esta noche.', correct: false },
+  ];
+  function renderTipos() {
+    const el = document.getElementById('tipos-options');
+    el.innerHTML = '';
+    tiposOptions.forEach(opt => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = opt.label;
+      b.disabled = state.tiposSolved;
+      b.addEventListener('click', () => {
+        if (state.tiposSolved) return;
+        if (opt.correct) {
+          state.tiposSolved = true;
+          document.getElementById('tipos-msg').textContent = 'El componedor queda armado, letra por letra, en espejo.';
+          renderTipos();
+          checkLevelComplete();
+        } else {
+          document.getElementById('tipos-msg').textContent = 'Esa frase no es la que circulaba entre los patriotas.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderTipos();
+  document.getElementById('hs-tipos').addEventListener('click', () => openModal('modal-tipos'));
+
+  const tintaOptions = ['1 : 1', '2 : 3', '3 : 1', '4 : 1'];
+  function renderTinta() {
+    const el = document.getElementById('tinta-options');
+    el.innerHTML = '';
+    tintaOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.style.display = 'inline-block'; b.style.width = '46%'; b.style.textAlign = 'center';
+      b.textContent = v;
+      b.disabled = state.tintaSolved;
+      b.addEventListener('click', () => {
+        if (state.tintaSolved) return;
+        if (v === '3 : 1') {
+          state.tintaSolved = true;
+          document.getElementById('tinta-msg').textContent = 'La tinta queda con la viscosidad justa para agarrar en el papel.';
+          renderTinta();
+          checkLevelComplete();
+        } else {
+          document.getElementById('tinta-msg').textContent = 'La mezcla queda muy líquida o muy espesa. No es esa proporción.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderTinta();
+  document.getElementById('hs-tinta').addEventListener('click', () => openModal('modal-tinta'));
+
+  const prensaOptions = [
+    '2 vueltas en cada tornillo',
+    '4 vueltas en uno, 1 en el otro',
+    '3 vueltas en cada tornillo, por igual',
+    '5 vueltas en un solo tornillo',
+  ];
+  function renderPrensa() {
+    const el = document.getElementById('prensa-options');
+    el.innerHTML = '';
+    prensaOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.prensaSolved;
+      b.addEventListener('click', () => {
+        if (state.prensaSolved) return;
+        if (v === '3 vueltas en cada tornillo, por igual') {
+          state.prensaSolved = true;
+          document.getElementById('prensa-msg').textContent = 'La presión queda pareja: la copia sale legible y la prensa no se rompe.';
+          renderPrensa();
+          checkLevelComplete();
+        } else {
+          document.getElementById('prensa-msg').textContent = 'La presión queda dispareja. Algo va a romperse o va a salir ilegible.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderPrensa();
+  document.getElementById('hs-prensa').addEventListener('click', () => openModal('modal-prensa'));
+
+  // ================= NIVEL 5 =================
+  const cifradoOptions = ['1 - 23 - 100', '23 - 91 - 150', '150 - 91 - 23', '90 - 12 - 3'];
+  function renderCifrado() {
+    const el = document.getElementById('cifrado-options');
+    el.innerHTML = '';
+    cifradoOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.cifradoSolved;
+      b.addEventListener('click', () => {
+        if (state.cifradoSolved) return;
+        if (v === '23 - 91 - 150') {
+          state.cifradoSolved = true;
+          document.getElementById('cifrado-msg').textContent = 'Los diales encajan en su lugar: el cerrojo se abre.';
+          renderCifrado();
+          checkLevelComplete();
+        } else {
+          document.getElementById('cifrado-msg').textContent = 'El cerrojo no cede. Ese no es el orden de los Salmos.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderCifrado();
+  document.getElementById('hs-cifrado').addEventListener('click', () => openModal('modal-cifrado'));
+
+  const pesoOptions = [450, 495, 500, 540];
+  function renderPeso() {
+    const el = document.getElementById('peso-options');
+    el.innerHTML = '';
+    pesoOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.style.display = 'inline-block'; b.style.width = '46%'; b.style.textAlign = 'center';
+      b.textContent = v + ' libras';
+      b.disabled = state.pesoSolved;
+      b.addEventListener('click', () => {
+        if (state.pesoSolved) return;
+        if (v === 495) {
+          state.pesoSolved = true;
+          document.getElementById('peso-msg').textContent = 'La balanza auxiliar se equilibra: el contrapeso libera la puerta.';
+          renderPeso();
+          checkLevelComplete();
+        } else {
+          document.getElementById('peso-msg').textContent = 'La balanza sigue inclinada. Revisá la cuenta de los pesos.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderPeso();
+  document.getElementById('hs-peso').addEventListener('click', () => openModal('modal-peso'));
+
+  const campanarioOptions = ['Nudo de ocho', 'Nudo llano', 'As de guía', 'Nudo de ballestrinque'];
+  function renderCampanario() {
+    const el = document.getElementById('campanario-options');
+    el.innerHTML = '';
+    campanarioOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.campanarioSolved;
+      b.addEventListener('click', () => {
+        if (state.campanarioSolved) return;
+        if (v === 'Nudo de ballestrinque') {
+          state.campanarioSolved = true;
+          document.getElementById('campanario-msg').textContent = 'El nudo sostiene firme: los badajos quedan conectados a los pedales.';
+          renderCampanario();
+          checkLevelComplete();
+        } else {
+          document.getElementById('campanario-msg').textContent = 'Ese nudo se afloja con el repique. No es el correcto.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderCampanario();
+  document.getElementById('hs-campanario').addEventListener('click', () => openModal('modal-campanario'));
 
   // ---------- Pistas contextuales ----------
   document.getElementById('hint-btn').addEventListener('click', () => {
@@ -619,10 +895,20 @@
       if (!state.balanzaSolved) text = 'La diferencia entre 600 y 450 te va a decir cuánto falta para equilibrar.';
       else if (!state.fechasSolved) text = 'La Reconquista de Buenos Aires fue en 1806. La Defensa, al año siguiente.';
       else text = 'Ya tenés la lista de la Junta. Continuá hacia el despacho del Virrey.';
-    } else {
+    } else if (state.level === 3) {
       if (!state.relojSolved) text = 'El Cabildo Abierto del 22 de mayo comenzó por la mañana, a las nueve en punto.';
       else if (!state.cajaSolved) text = 'La pizarra en la pared tiene los votos anotados. Sumá la columna de los criollos.';
       else text = 'Ya tenés el sello. Andá hasta la proclama sobre el escritorio y sellala.';
+    } else if (state.level === 4) {
+      if (!state.tiposSolved) text = 'Es la frase que se repitió en la Plaza el 22 de mayo, exigiendo saber qué pasaba con el virrey.';
+      else if (!state.tintaSolved) text = 'El manual habla de más aceite que negro de humo — bastante más.';
+      else if (!state.prensaSolved) text = 'La fuerza pareja en los dos tornillos es lo que evita romper la prensa.';
+      else text = 'La proclama falsa está lista. Continuá hacia la Catedral.';
+    } else {
+      if (!state.cifradoSolved) text = 'Los Salmos se leyeron de menor a mayor número esa mañana.';
+      else if (!state.pesoSolved) text = 'Nueve pesos iguales más uno que pesa el doble: sumalos todos.';
+      else if (!state.campanarioSolved) text = 'Es el nudo preferido de los marineros para tensar sin que se corra.';
+      else text = 'Las campanas están listas para repicar.';
     }
     document.getElementById('hint-text').textContent = text;
     openModal('modal-hint');

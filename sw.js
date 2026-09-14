@@ -1,4 +1,5 @@
-const CACHE_NAME = 'conspiracion-mayo-v1';
+const CACHE_PREFIX = 'conspiracion-mayo-';
+const CACHE_NAME = CACHE_PREFIX + 'v2';
 
 const ASSETS = [
   './',
@@ -10,6 +11,8 @@ const ASSETS = [
   './botica-bg.jpg',
   './pasadizos-bg.jpg',
   './despacho-bg.jpg',
+  './imprenta-bg.jpg',
+  './catedral-bg.jpg',
 ];
 
 self.addEventListener('install', (event) => {
@@ -22,7 +25,11 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+      Promise.all(
+        keys
+          .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      )
     )
   );
   self.clients.claim();

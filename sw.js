@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'conspiracion-mayo-';
-const CACHE_NAME = CACHE_PREFIX + 'v4';
+const CACHE_NAME = CACHE_PREFIX + 'v5';
 
 const ASSETS = [
   './',
@@ -17,6 +17,8 @@ const ASSETS = [
   './consagracion-bg.jpg',
   './resistencia-bg.jpg',
   './aduana-bg.jpg',
+  './cuartel-bg.jpg',
+  './camino-norte-bg.jpg',
 ];
 
 self.addEventListener('install', (event) => {

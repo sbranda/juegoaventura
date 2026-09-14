@@ -195,6 +195,16 @@
       <button class="hotspot" id="hs-grua" style="left:63%; top:35%;" title="Grúa de carga">🏗️</button>
       <button class="hotspot" id="hs-mosaico" style="left:82%; top:70%;" title="Mosaico de la aduana">🔆</button>
     </div>
+    <div id="hotspots-10" style="display:none;">
+      <button class="hotspot" id="hs-decreto" style="left:39%; top:42%;" title="El Decreto Cruzado">📜</button>
+      <button class="hotspot" id="hs-archivo" style="left:63%; top:52%;" title="El Archivo Confidencial">🗃️</button>
+      <button class="hotspot" id="hs-balanza-influencias" style="left:79%; top:66%;" title="La Balanza de Influencias">⚖️</button>
+    </div>
+    <div id="hotspots-11" style="display:none;">
+      <button class="hotspot" id="hs-empaquetado" style="left:53%; top:33%;" title="La carreta cargada">🛒</button>
+      <button class="hotspot" id="hs-cifrado-posta" style="left:17%; top:60%;" title="Cifrado de la Posta">🗺️</button>
+      <button class="hotspot" id="hs-enganche" style="left:85%; top:63%;" title="El enganche de la carreta">🪢</button>
+    </div>
   </div>
 
   <div id="objective-banner"><b>Objetivo:</b> <span id="objective-text"></span></div>
@@ -423,6 +433,77 @@
 
 <div id="toast"></div>
 
+<!-- Modal: decreto cruzado (Nivel 10) -->
+<div class="modal-backdrop" id="modal-decreto">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-decreto">✕</button>
+    <h2>El Decreto Cruzado</h2>
+    <p>Alineando los cilindros de madera grabados con decretos de la Junta, aparece un mensaje oculto
+    sobre los movimientos de las tropas del exvirrey Liniers. ¿Cuál es?</p>
+    <div id="decreto-options"></div>
+    <div class="msg" id="decreto-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: archivo confidencial (Nivel 10) -->
+<div class="modal-backdrop" id="modal-archivo">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-archivo">✕</button>
+    <h2>El Archivo Confidencial</h2>
+    <p>El cofre se abre con la fecha clave de las reuniones del Cabildo de julio de 1810.</p>
+    <div id="archivo-options"></div>
+    <div class="msg" id="archivo-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: balanza de influencias (Nivel 10) -->
+<div class="modal-backdrop" id="modal-balanza-influencias">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-balanza-influencias">✕</button>
+    <h2>La Balanza de Influencias</h2>
+    <p>Clero, Milicias y Hacendados deben quedar en equilibrio para no romper el frágil pacto de gobierno.
+    ¿Qué combinación de pesos lo logra?</p>
+    <div id="balanza-influencias-options"></div>
+    <div class="msg" id="balanza-influencias-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: empaquetado (Nivel 11) -->
+<div class="modal-backdrop" id="modal-empaquetado">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-empaquetado">✕</button>
+    <h2>El empaquetado del pertrecho</h2>
+    <p>Pólvora, munición y raciones deben repartirse entre los dos ejes de la carreta para que no vuelque
+    en los caminos de tierra anegados.</p>
+    <div id="empaquetado-options"></div>
+    <div class="msg" id="empaquetado-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: cifrado de la posta (Nivel 11) -->
+<div class="modal-backdrop" id="modal-cifrado-posta">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-cifrado-posta">✕</button>
+    <h2>El cifrado de la posta</h2>
+    <p>Una plantilla perforada sobre la Carta de Navegación Comercial revela instrucciones ocultas entre
+    las líneas de texto común. ¿Qué ruta indican?</p>
+    <div id="cifrado-posta-options"></div>
+    <div class="msg" id="cifrado-posta-msg"></div>
+  </div>
+</div>
+
+<!-- Modal: enganche de las picadas (Nivel 11) -->
+<div class="modal-backdrop" id="modal-enganche">
+  <div class="modal-box">
+    <button class="modal-close" data-close="modal-enganche">✕</button>
+    <h2>El enganche de las picadas</h2>
+    <p>Hay que reparar la tracción y los frenos con cuerdas de cuero crudo antes de que amanezca. ¿Qué
+    nudo de enganche rápido aguanta la tensión del camino?</p>
+    <div id="enganche-options"></div>
+    <div class="msg" id="enganche-msg"></div>
+  </div>
+</div>
+
 <!-- Modal: código de baterías (Nivel 8) -->
 <div class="modal-backdrop" id="modal-baterias">
   <div class="modal-box">
@@ -516,6 +597,8 @@
     verificadoSolved: false,
     bateriasSolved: false, polvorinSolved: false, banderaBajadaSolved: false,
     manifiestoSolved: false, gruaSolved: false, mosaicoSolved: false,
+    decretoSolved: false, archivoSolved: false, balanzaInfluenciasSolved: false,
+    empaquetadoSolved: false, cifradoPostaSolved: false, engancheSolved: false,
   };
   const inventory = []; // { id, label, icon }
 
@@ -529,12 +612,15 @@
     7: 'Entregá y consagrá. Verificá la autenticidad del Acta contra el original de Belgrano usando la lámpara de aceite.',
     8: 'Asegurá el Fuerte. ¡Desactivá las baterías, inundá el polvorín y arriá la bandera realista antes de que sea tarde!',
     9: '¡Intercepta el contrabando! Pesá las cajas para identificar las armas, operá la grúa con cuidado y sellá el depósito fiscal.',
+    10: '¡Asegurá los despachos! Descifrá el Decreto Cruzado, abrí el Archivo Confidencial y equilibrá la Balanza de Influencias.',
+    11: '¡Partí hacia el Norte! Equilibrá la carga, descifrá la ruta oculta y asegurá el enganche de la carreta antes del amanecer.',
   };
   const BACKGROUNDS = {
     1: 'botica-bg.jpg', 2: 'pasadizos-bg.jpg', 3: 'despacho-bg.jpg',
     4: 'imprenta-bg.jpg', 5: 'catedral-bg.jpg',
     6: 'fuerte-bg.jpg', 7: 'consagracion-bg.jpg',
     8: 'resistencia-bg.jpg', 9: 'aduana-bg.jpg',
+    10: 'cuartel-bg.jpg', 11: 'camino-norte-bg.jpg',
   };
 
   function addItem(id, label, icon) {
@@ -573,7 +659,7 @@
     state.level = n;
     document.getElementById('scene').style.backgroundImage = `url('${BACKGROUNDS[n]}')`;
     document.getElementById('objective-text').textContent = OBJECTIVES[n];
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= 11; i++) {
       document.getElementById('hotspots-' + i).style.display = (n === i) ? 'block' : 'none';
     }
     document.getElementById('advance-btn').style.display = 'none';
@@ -619,15 +705,23 @@
       btn.style.display = 'block';
     } else if (state.level === 9 && state.manifiestoSolved && state.gruaSolved && state.mosaicoSolved) {
       addItem('armas', 'Armas confiscadas', '⚔️');
+      btn.textContent = 'Ir al Cuartel de Saavedra →';
+      btn.style.display = 'block';
+    } else if (state.level === 10 && state.decretoSolved && state.archivoSolved && state.balanzaInfluenciasSolved) {
+      addItem('despachos', 'Despachos secretos', '📨');
+      btn.textContent = 'Ir al Camino Real →';
+      btn.style.display = 'block';
+    } else if (state.level === 11 && state.empaquetadoSolved && state.cifradoPostaSolved && state.engancheSolved) {
+      addItem('expedicion', 'Expedición al Norte asegurada', '🐎');
       triggerFinalWin();
     }
   }
 
   function triggerFinalWin() {
     document.getElementById('win-text').textContent =
-      'Ante Saavedra, Moreno y Paso, el Acta quedó consagrada. El Fuerte fue asegurado sin derramar sangre ' +
-      'y el contrabando de armas terminó bajo custodia patriótica en la Aduana. La Primera Junta gobierna sin ' +
-      'oposición armada: el 25 de mayo de 1810, Buenos Aires amanece con su primer gobierno patrio, a salvo.';
+      'El Acta quedó consagrada, el Fuerte asegurado y el contrabando bajo custodia. En el cuartel de Saavedra ' +
+      'se neutralizó el complot contra la Junta, y la primera expedición patriota parte hacia el Norte antes del ' +
+      'amanecer. La Revolución de Mayo queda asegurada en todos los frentes.';
     document.getElementById('win-screen').style.display = 'flex';
   }
 
@@ -638,6 +732,8 @@
     else if (state.level === 5) setLevel(6);
     else if (state.level === 6) setLevel(7);
     else if (state.level === 8) setLevel(9);
+    else if (state.level === 9) setLevel(10);
+    else if (state.level === 10) setLevel(11);
   });
 
   // ---------- Inicio ----------
@@ -1362,6 +1458,185 @@
   renderMosaico();
   document.getElementById('hs-mosaico').addEventListener('click', () => openModal('modal-mosaico'));
 
+  // ================= NIVEL 10 =================
+  const decretoOptions = [
+    'Liniers marcha hacia Córdoba con refuerzos realistas.',
+    'Liniers se rinde y abandona el interior.',
+    'Liniers negocia en secreto con Saavedra.',
+    'Liniers ya fue capturado en Montevideo.',
+  ];
+  function renderDecreto() {
+    const el = document.getElementById('decreto-options');
+    el.innerHTML = '';
+    decretoOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.decretoSolved;
+      b.addEventListener('click', () => {
+        if (state.decretoSolved) return;
+        if (v === 'Liniers marcha hacia Córdoba con refuerzos realistas.') {
+          state.decretoSolved = true;
+          document.getElementById('decreto-msg').textContent = 'Los cilindros encajan: el mensaje confirma el movimiento de tropas.';
+          renderDecreto();
+          checkLevelComplete();
+        } else {
+          document.getElementById('decreto-msg').textContent = 'Los cilindros no alinean un mensaje coherente con esa lectura.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderDecreto();
+  document.getElementById('hs-decreto').addEventListener('click', () => openModal('modal-decreto'));
+
+  const archivoOptions = ['6 de julio', '9 de julio', '15 de julio', '22 de julio'];
+  function renderArchivo() {
+    const el = document.getElementById('archivo-options');
+    el.innerHTML = '';
+    archivoOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.style.display = 'inline-block'; b.style.width = '46%'; b.style.textAlign = 'center';
+      b.textContent = v;
+      b.disabled = state.archivoSolved;
+      b.addEventListener('click', () => {
+        if (state.archivoSolved) return;
+        if (v === '6 de julio') {
+          state.archivoSolved = true;
+          document.getElementById('archivo-msg').textContent = 'Los diales encajan: el cofre se abre.';
+          renderArchivo();
+          checkLevelComplete();
+        } else {
+          document.getElementById('archivo-msg').textContent = 'El cofre no cede con esa fecha.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderArchivo();
+  document.getElementById('hs-archivo').addEventListener('click', () => openModal('modal-archivo'));
+
+  const balanzaInfluenciasOptions = [
+    'Clero 40 - Milicias 20 - Hacendados 40',
+    'Clero 30 - Milicias 40 - Hacendados 30',
+    'Clero 50 - Milicias 10 - Hacendados 40',
+    'Clero 20 - Milicias 60 - Hacendados 20',
+  ];
+  function renderBalanzaInfluencias() {
+    const el = document.getElementById('balanza-influencias-options');
+    el.innerHTML = '';
+    balanzaInfluenciasOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.balanzaInfluenciasSolved;
+      b.addEventListener('click', () => {
+        if (state.balanzaInfluenciasSolved) return;
+        if (v === 'Clero 30 - Milicias 40 - Hacendados 30') {
+          state.balanzaInfluenciasSolved = true;
+          document.getElementById('balanza-influencias-msg').textContent = 'La balanza queda nivelada: el equilibrio de poder se mantiene.';
+          renderBalanzaInfluencias();
+          checkLevelComplete();
+        } else {
+          document.getElementById('balanza-influencias-msg').textContent = 'Un sector queda con demasiado peso. El pacto se rompería.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderBalanzaInfluencias();
+  document.getElementById('hs-balanza-influencias').addEventListener('click', () => openModal('modal-balanza-influencias'));
+
+  // ================= NIVEL 11 =================
+  const empaquetadoOptions = [
+    'Todo el peso adelante',
+    'Peso parejo entre los dos ejes',
+    'Todo el peso atrás',
+    'Todo en el eje trasero, nada en el delantero',
+  ];
+  function renderEmpaquetado() {
+    const el = document.getElementById('empaquetado-options');
+    el.innerHTML = '';
+    empaquetadoOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.empaquetadoSolved;
+      b.addEventListener('click', () => {
+        if (state.empaquetadoSolved) return;
+        if (v === 'Peso parejo entre los dos ejes') {
+          state.empaquetadoSolved = true;
+          document.getElementById('empaquetado-msg').textContent = 'La carreta queda estable, lista para el camino de tierra.';
+          renderEmpaquetado();
+          checkLevelComplete();
+        } else {
+          document.getElementById('empaquetado-msg').textContent = 'Con ese reparto, la carreta volcaría en el barro.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderEmpaquetado();
+  document.getElementById('hs-empaquetado').addEventListener('click', () => openModal('modal-empaquetado'));
+
+  const cifradoPostaOptions = [
+    'Ruta por la costa hasta Montevideo',
+    'Ruta del Camino Real hasta Córdoba y el Alto Perú',
+    'Ruta directa hacia Chile por la cordillera',
+    'Ruta fluvial por el Paraná',
+  ];
+  function renderCifradoPosta() {
+    const el = document.getElementById('cifrado-posta-options');
+    el.innerHTML = '';
+    cifradoPostaOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.cifradoPostaSolved;
+      b.addEventListener('click', () => {
+        if (state.cifradoPostaSolved) return;
+        if (v === 'Ruta del Camino Real hasta Córdoba y el Alto Perú') {
+          state.cifradoPostaSolved = true;
+          document.getElementById('cifrado-posta-msg').textContent = 'La plantilla revela la ruta oculta entre las líneas de la carta comercial.';
+          renderCifradoPosta();
+          checkLevelComplete();
+        } else {
+          document.getElementById('cifrado-posta-msg').textContent = 'Esa lectura no coincide con los agujeros de la plantilla.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderCifradoPosta();
+  document.getElementById('hs-cifrado-posta').addEventListener('click', () => openModal('modal-cifrado-posta'));
+
+  const engancheOptions = ['Nudo de ocho', 'Nudo llano doble', 'Ballestrinque doble', 'As de guía corredizo'];
+  function renderEnganche() {
+    const el = document.getElementById('enganche-options');
+    el.innerHTML = '';
+    engancheOptions.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'action';
+      b.textContent = v;
+      b.disabled = state.engancheSolved;
+      b.addEventListener('click', () => {
+        if (state.engancheSolved) return;
+        if (v === 'Ballestrinque doble') {
+          state.engancheSolved = true;
+          document.getElementById('enganche-msg').textContent = 'El enganche queda firme, listo para tirar de la carreta cargada.';
+          renderEnganche();
+          checkLevelComplete();
+        } else {
+          document.getElementById('enganche-msg').textContent = 'Ese nudo se afloja con el traqueteo del camino.';
+        }
+      });
+      el.appendChild(b);
+    });
+  }
+  renderEnganche();
+  document.getElementById('hs-enganche').addEventListener('click', () => openModal('modal-enganche'));
+
   // ---------- Pistas contextuales ----------
   document.getElementById('hint-btn').addEventListener('click', () => {
     let text;
@@ -1405,6 +1680,16 @@
       else if (!state.gruaSolved) text = 'Ni muy brusco ni muy suave: el punto medio es el que no rompe nada.';
       else if (!state.mosaicoSolved) text = 'Empezá por el sol en el centro del mosaico y seguí hacia afuera.';
       else text = 'Las armas quedaron confiscadas. La Revolución está a salvo.';
+    } else if (state.level === 10) {
+      if (!state.decretoSolved) text = 'Liniers sigue siendo una amenaza desde el interior. Pensá en un movimiento de tropas, no en una rendición.';
+      else if (!state.archivoSolved) text = 'Las reuniones clave de julio empezaron temprano en el mes.';
+      else if (!state.balanzaInfluenciasSolved) text = 'Las milicias necesitan más peso que el clero o los hacendados por separado, pero sin desequilibrar todo.';
+      else text = 'Los despachos están asegurados. Continuá hacia el Camino Real.';
+    } else {
+      if (!state.empaquetadoSolved) text = 'Un peso parejo entre los dos ejes es lo que evita que la carreta vuelque.';
+      else if (!state.cifradoPostaSolved) text = 'La expedición va hacia el Alto Perú — la ruta oculta tiene que apuntar para ese lado.';
+      else if (!state.engancheSolved) text = 'El mismo nudo que sirvió para las campanas y la bandera vuelve a servir acá.';
+      else text = 'La expedición está lista para partir hacia el Norte.';
     }
     document.getElementById('hint-text').textContent = text;
     openModal('modal-hint');

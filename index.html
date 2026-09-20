@@ -170,6 +170,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script>
 (function () {
   const startBtn = document.getElementById('start-btn');
@@ -291,17 +292,14 @@
   camera.add(lanternLight);
   scene.add(camera);
 
-  // patrol guard: a moving colored capsule with its own spotlight (flashlight)
+  // patrol guard: real 3D character (glTF) with a walking animation + a flashlight
   const guardGroup = new THREE.Group();
-  const guardBodyMat = new THREE.MeshStandardMaterial({ color: 0x8a2b2b, roughness: 0.6 });
-  const guardBody = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 1.4, 12), guardBodyMat);
-  guardBody.position.y = 1;
-  guardBody.castShadow = true;
-  guardGroup.add(guardBody);
-  const guardHeadMat = new THREE.MeshStandardMaterial({ color: 0xd8b48a });
-  const guardHead = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), guardHeadMat);
-  guardHead.position.y = 1.75;
-  guardGroup.add(guardHead);
+
+  // placeholder shown while the model streams in, removed once it loads
+  const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x8a2b2b, roughness: 0.6 });
+  const guardPlaceholder = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.6, 10), placeholderMat);
+  guardPlaceholder.position.y = 0.8;
+  guardGroup.add(guardPlaceholder);
 
   const flashlight = new THREE.SpotLight(0xfff2c8, 2.2, 12, Math.PI / 7, 0.4, 1.5);
   flashlight.position.set(0, 1.7, 0.2);
@@ -313,6 +311,30 @@
 
   guardGroup.position.set(1.5, 0, -8);
   scene.add(guardGroup);
+
+  let guardMixer = null;
+  if (typeof THREE.GLTFLoader === 'function') {
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+      'guard-soldier.glb',
+      (gltf) => {
+        guardGroup.remove(guardPlaceholder);
+        const model = gltf.scene;
+        model.rotation.y = Math.PI; // face forward along -Z like the placeholder did
+        model.traverse((node) => { if (node.isMesh) node.castShadow = true; });
+        guardGroup.add(model);
+
+        guardMixer = new THREE.AnimationMixer(model);
+        const clips = gltf.animations || [];
+        const walkClip = clips.find((c) => /walk/i.test(c.name)) || clips[0];
+        if (walkClip) guardMixer.clipAction(walkClip).play();
+      },
+      undefined,
+      (err) => {
+        console.warn('No se pudo cargar el modelo del guardia, se mantiene el reemplazo geométrico.', err);
+      }
+    );
+  }
 
   let guardT = 0;
   const guardPath = [
@@ -478,7 +500,10 @@
     const b = guardPath[(guardSeg + 1) % guardPath.length];
     const t = (Math.sin(guardT) + 1) / 2;
     guardGroup.position.lerpVectors(a, b, t);
-    guardGroup.lookAt(b.x, 0, b.z);
+    const heading = Math.cos(guardT) >= 0 ? b : a;
+    guardGroup.lookAt(heading.x, 0, heading.z);
+
+    if (guardMixer) guardMixer.update(dt);
 
     renderer.render(scene, camera);
   }

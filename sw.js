@@ -1,10 +1,11 @@
 const CACHE_PREFIX = 'deposito-3d-';
-const CACHE_NAME = CACHE_PREFIX + 'v2';
+const CACHE_NAME = CACHE_PREFIX + 'v3';
 
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './guard-soldier.glb',
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png'

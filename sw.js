@@ -1,13 +1,10 @@
-const CACHE_PREFIX = 'visperas-de-mayo-';
+const CACHE_PREFIX = 'deposito-3d-';
 const CACHE_NAME = CACHE_PREFIX + 'v1';
 
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './escena1-pulperia.jpg',
-  './escena2-jaboneria.jpg',
-  './escena3-cabildo.jpg',
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png'
@@ -34,11 +31,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
-        if (response && response.status === 200 && event.request.method === 'GET') {
+        if (response && response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }

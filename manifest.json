@@ -1,13 +1,13 @@
 {
-  "name": "1810: La Conspiración de Mayo",
-  "short_name": "Conspiración 1810",
-  "description": "Escape room histórico: infiltrate en la Semana de Mayo de 1810 y sellá la proclama patriótica",
+  "name": "Vísperas de Mayo",
+  "short_name": "Vísperas 1810",
+  "description": "Tres noches de acertijos en el Buenos Aires de 1810, en vísperas de la Revolución de Mayo.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f0c09",
-  "theme_color": "#1a1410",
+  "background_color": "#120d08",
+  "theme_color": "#120d08",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

@@ -1,24 +1,16 @@
-const CACHE_PREFIX = 'conspiracion-mayo-';
-const CACHE_NAME = CACHE_PREFIX + 'v5';
+const CACHE_PREFIX = 'visperas-de-mayo-';
+const CACHE_NAME = CACHE_PREFIX + 'v1';
 
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './escena1-pulperia.jpg',
+  './escena2-jaboneria.jpg',
+  './escena3-cabildo.jpg',
   './icon-192.png',
   './icon-512.png',
-  './icon-512-maskable.png',
-  './botica-bg.jpg',
-  './pasadizos-bg.jpg',
-  './despacho-bg.jpg',
-  './imprenta-bg.jpg',
-  './catedral-bg.jpg',
-  './fuerte-bg.jpg',
-  './consagracion-bg.jpg',
-  './resistencia-bg.jpg',
-  './aduana-bg.jpg',
-  './cuartel-bg.jpg',
-  './camino-norte-bg.jpg',
+  './icon-512-maskable.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -43,6 +35,15 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        if (response && response.status === 200 && event.request.method === 'GET') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => cached);
+    })
   );
 });

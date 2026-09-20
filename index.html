@@ -2,1704 +2,594 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>1810: La Conspiración de Mayo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Vísperas de Mayo</title>
+<meta name="theme-color" content="#120d08">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a1410">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Conspiración de Mayo">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vísperas de Mayo">
 <style>
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
-    background: #0f0c09; color: #e8dcc0;
-    font-family: Georgia, 'Times New Roman', serif;
-    overflow: hidden; user-select: none;
+    background: #0a0704; overflow: hidden;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color: #f0e6d2;
+    user-select: none;
   }
-  button { font-family: inherit; cursor: pointer; }
+  #app { position: fixed; inset: 0; }
 
-  /* ---------- Inicio ---------- */
+  /* ---------- START SCREEN ---------- */
   #start-screen {
-    position: fixed; inset: 0; z-index: 50;
-    background: radial-gradient(ellipse at center, #2a2016 0%, #0f0c09 75%);
+    position: absolute; inset: 0; z-index: 50;
+    background: radial-gradient(ellipse at center, #241a0d 0%, #0a0704 75%);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 24px; gap: 14px;
+    text-align: center; padding: 24px;
   }
-  #start-screen h1 { font-size: 23px; letter-spacing: 0.5px; color: #c9a227; margin: 0; }
-  #start-screen p { max-width: 380px; line-height: 1.5; font-size: 14px; color: #d8cba8; }
-  #start-screen button {
-    margin-top: 8px; background: transparent; border: 1px solid #c9a227; color: #c9a227;
-    padding: 10px 26px; border-radius: 4px; font-size: 15px;
+  #start-screen h1 {
+    font-size: clamp(26px, 7vw, 44px); letter-spacing: 2px;
+    color: #e8c976; text-shadow: 0 0 18px rgba(232,201,118,0.4); margin: 0 0 6px;
+  }
+  #start-screen h2 {
+    font-weight: normal; font-style: italic; font-size: clamp(14px, 3.8vw, 18px);
+    color: #c9a865; margin: 0 0 22px;
+  }
+  #start-screen p.lore {
+    max-width: 560px; font-size: clamp(13px, 3.4vw, 16px); line-height: 1.6;
+    color: #d8c9a8; margin-bottom: 28px;
+  }
+  .btn {
+    font-family: inherit; font-size: 16px; letter-spacing: 1px;
+    padding: 13px 30px; border-radius: 4px; border: 1px solid #c9a865;
+    background: linear-gradient(#7a5a20, #4d3a14); color: #f5e9c8; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+  .btn.small { padding: 9px 16px; font-size: 13px; }
+
+  /* ---------- HUD ---------- */
+  #hud {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 10px 12px; pointer-events: none;
+  }
+  #objective {
+    pointer-events: auto; max-width: 72%;
+    background: rgba(15,10,5,0.78); border: 1px solid #7a5c2c;
+    border-radius: 6px; padding: 8px 12px; font-size: 12px; line-height: 1.4;
+    color: #e8dcc0;
+  }
+  #objective b { color: #e8c976; display:block; font-size: 10px; letter-spacing:1px; text-transform:uppercase; margin-bottom:2px;}
+  #hint-btn {
+    pointer-events: auto;
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; margin-left: 8px;
+    border: 1px solid #8a6a35; background: rgba(20,14,8,0.8); color: #e8c976;
+    font-size: 17px; cursor: pointer;
   }
 
-  /* ---------- Escena ---------- */
-  #game { position: fixed; inset: 0; display: none; }
-  #scene {
-    position: absolute; inset: 0; background-size: cover; background-position: center;
-    transition: background-image 0.3s ease;
+  /* ---------- SCENES ---------- */
+  .scene {
+    position: absolute; inset: 0; display: none;
+    background-size: cover; background-position: center;
+  }
+  .scene.active { display: block; }
+  .scene::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.15) 100%);
+    pointer-events: none;
   }
   .hotspot {
-    position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px;
-    border-radius: 50%; border: 1px solid rgba(201,162,39,0.65);
-    background: rgba(15,12,9,0.55);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px; color: #e8dcc0;
-    animation: pulse 2.4s infinite ease-in-out;
+    position: absolute; border: none; background: rgba(232,201,118,0.16);
+    border: 1.5px dashed rgba(232,201,118,0.75); border-radius: 8px;
+    cursor: pointer; z-index: 5;
+    animation: pulseSpot 2.2s infinite ease-in-out;
   }
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(201,162,39,0.35); }
-    50% { box-shadow: 0 0 0 8px rgba(201,162,39,0); }
-  }
-  .hotspot.done { opacity: 0.4; animation: none; }
-
-  #objective-banner {
-    position: absolute; top: 12px; left: 12px; max-width: 62%;
-    background: rgba(10,8,6,0.72); border: 1px solid rgba(201,162,39,0.5);
-    padding: 10px 14px; font-size: 13px; line-height: 1.45; border-radius: 3px;
-  }
-  #objective-banner b { color: #c9a227; }
-
-  #advance-btn {
-    position: absolute; top: 12px; right: 12px;
-    background: rgba(20,60,30,0.75); border: 1px solid #6fae6f; color: #d8f0d8;
-    padding: 9px 16px; border-radius: 20px; font-size: 13px; display: none;
+  @keyframes pulseSpot {
+    0%,100% { box-shadow: 0 0 0 0 rgba(232,201,118,0.35); }
+    50% { box-shadow: 0 0 14px 4px rgba(232,201,118,0.25); }
   }
 
-  #hint-btn {
-    position: absolute; bottom: 74px; right: 12px;
-    background: rgba(15,12,9,0.75); border: 1px solid #c9a227; color: #e8dcc0;
-    padding: 8px 12px; border-radius: 20px; font-size: 12px;
-  }
-
+  /* ---------- INVENTORY BAR ---------- */
   #inventory-bar {
-    position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
-    display: flex; gap: 8px; background: rgba(10,8,6,0.72);
-    border: 1px solid rgba(201,162,39,0.5); border-radius: 8px; padding: 8px 10px;
-    max-width: 92%; overflow-x: auto;
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: rgba(12,8,4,0.85); border-top: 1px solid #6b4f24;
+    padding: 8px 10px; display: flex; gap: 8px; overflow-x: auto;
+    min-height: 44px; align-items: center;
   }
   .inv-item {
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    font-size: 9px; color: #d8cba8; min-width: 46px;
+    flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+    background: rgba(122,90,32,0.25); border: 1px solid #8a6a35; border-radius: 5px;
+    padding: 5px 10px; font-size: 12px; color: #f0e6d2; white-space: nowrap;
   }
-  .inv-item .ic {
-    width: 34px; height: 34px; border: 1px solid #c9a227; border-radius: 4px;
-    display: flex; align-items: center; justify-content: center; font-size: 17px;
-    background: rgba(201,162,39,0.08);
+  .inv-item .ico { font-size: 15px; }
+  #inventory-bar:empty::before {
+    content: 'Sin objetos todavía'; color: #7a6a4a; font-size: 12px; font-style: italic;
   }
-  #inventory-empty { font-size: 11px; color: #8a7a5a; padding: 6px 4px; }
 
-  /* ---------- Modales ---------- */
+  /* ---------- MODALS ---------- */
   .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.72);
-    display: none; align-items: center; justify-content: center; z-index: 30; padding: 20px;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+    display: none; align-items: center; justify-content: center; z-index: 100; padding: 18px;
   }
-  .modal-backdrop.open { display: flex; }
+  .modal-backdrop.active { display: flex; }
   .modal-box {
-    background: #1e1712; border: 1px solid #c9a227; border-radius: 6px;
-    max-width: 420px; width: 100%; max-height: 82vh; overflow-y: auto;
-    padding: 20px; position: relative;
+    background: #17110a; border: 1px solid #8a6a35; border-radius: 8px;
+    padding: 20px; max-width: 460px; width: 100%; max-height: 86vh; overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
   }
-  .modal-box h2 { color: #c9a227; font-size: 17px; margin-top: 0; }
-  .modal-box p { font-size: 14px; line-height: 1.5; }
-  .modal-close {
-    position: absolute; top: 10px; right: 12px; background: none; border: none;
-    color: #e8dcc0; font-size: 18px; opacity: 0.7;
+  .modal-box h3 { color: #e8c976; margin: 0 0 10px; font-size: 18px; }
+  .modal-box p { color: #e6dcc4; line-height: 1.55; font-size: 14.5px; }
+  .modal-box .btn { margin-top: 10px; }
+  .cipher-text {
+    font-family: 'Courier New', monospace; letter-spacing: 3px; font-size: 20px;
+    text-align: center; background: #0f0a05; border: 1px solid #6b4f24; border-radius: 4px;
+    padding: 12px; color: #e8c976; margin: 10px 0;
   }
-  .modal-box button.action {
-    background: transparent; border: 1px solid #c9a227; color: #c9a227;
-    padding: 8px 14px; border-radius: 4px; font-size: 13px; margin: 4px 4px 4px 0;
-    display: block; width: 100%; text-align: left;
+  .choice-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+  .choice-btn {
+    font-family: inherit; text-align: left; font-size: 14px; padding: 10px 12px;
+    border-radius: 5px; border: 1px solid #6b4f24; background: #221807; color: #f0e6d2;
+    cursor: pointer;
   }
-  .modal-box button.action:disabled { opacity: 0.4; }
-  .msg { font-size: 13px; color: #c9a227; margin-top: 8px; min-height: 16px; }
+  .choice-btn:active { background: #33240c; }
+  .choice-btn.correct { border-color: #7bc97b; background: #1a2c17; }
+  .choice-btn.wrong { border-color: #c9756f; background: #2c1717; }
+  .feedback { margin-top: 8px; font-size: 13px; min-height: 16px; color: #e08a8a; }
+  .feedback.ok { color: #9ad68a; }
+  .suspicion-meter { display: flex; gap: 6px; margin: 8px 0 4px; }
+  .suspicion-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #8a6a35; background: transparent; }
+  .suspicion-dot.on { background: #c9756f; border-color: #c9756f; }
+  .dial-row { display: flex; gap: 8px; margin: 10px 0; }
+  .dial-row select {
+    flex: 1; font-family: inherit; font-size: 14px; padding: 9px 6px;
+    border-radius: 4px; border: 1px solid #8a6a35; background: #0f0a05; color: #f5e9c8;
+  }
+  .symbol-label { text-align:center; font-size:11px; color:#c9a865; margin-top:-4px; margin-bottom:6px; }
 
-  .dial-row { display: flex; gap: 10px; justify-content: center; margin: 16px 0; flex-wrap: wrap; }
-  .dial {
-    display: flex; flex-direction: column; align-items: center;
-    border: 1px solid #c9a227; border-radius: 4px; padding: 4px 8px;
-  }
-  .dial span.lbl { font-size: 10px; color: #9a8a6a; margin-bottom: 2px; }
-  .dial button { background: none; border: none; color: #c9a227; font-size: 16px; padding: 2px 10px; }
-  .dial .val { font-size: 18px; width: 56px; text-align: center; }
-
-  #toast {
-    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
-    background: rgba(15,12,9,0.94); border: 1px solid #c9a227; color: #e8dcc0;
-    padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 40;
-    opacity: 0; pointer-events: none; transition: opacity 0.3s ease; max-width: 80%; text-align: center;
-  }
-  #toast.show { opacity: 1; }
-
+  /* ---------- END SCREEN ---------- */
   #win-screen {
-    position: fixed; inset: 0; z-index: 60; display: none;
-    background: radial-gradient(ellipse at center, #2a2016 0%, #0f0c09 75%);
-    align-items: center; justify-content: center; flex-direction: column;
-    text-align: center; padding: 24px; gap: 12px;
+    position: absolute; inset: 0; z-index: 60; display: none;
+    background: rgba(6,4,2,0.95); flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 30px;
   }
-  #win-screen h2 { color: #c9a227; font-size: 21px; }
-  #win-screen p { max-width: 380px; font-size: 14px; line-height: 1.5; }
+  #win-screen.active { display: flex; }
+  #win-screen h2 { color: #e8c976; font-size: clamp(22px,6vw,30px); margin-bottom: 10px; }
+  #win-screen p { max-width: 520px; line-height: 1.6; color: #d8c9a8; font-size: clamp(13px,3.4vw,15.5px); margin-bottom: 20px; }
 </style>
 </head>
 <body>
+<div id="app">
 
-<div id="start-screen">
-  <h1>1810: LA CONSPIRACIÓN DE MAYO</h1>
-  <p>Sos un espía al servicio de la Sociedad Patriótica en Buenos Aires. Durante la Semana de Mayo debés
-  descubrir el punto de reunión secreto, hacerte con la lista de la Junta y sellar la proclama patriótica
-  antes de que las fuerzas realistas descubran la conspiración.</p>
-  <button id="start-btn">Comenzar la conspiración</button>
-</div>
+  <div id="start-screen">
+    <h1>Vísperas de Mayo</h1>
+    <h2>Tres noches en Buenos Aires, 1810</h2>
+    <p class="lore">Mayo de 1810. El Virreinato tiembla. Sos un mensajero patriota que debe cruzar la ciudad en tres noches decisivas: una pulpería donde se esconde un mensaje cifrado, una tertulia donde una palabra de más puede costarte la libertad, y los pasillos del Cabildo donde se decide el destino de la Revolución.</p>
+    <button class="btn" id="start-btn">Salir a la noche</button>
+  </div>
 
-<div id="game">
-  <div id="scene">
-    <div id="hotspots-1">
-      <button class="hotspot" id="hs-cipher" style="left:38%; top:56%;" title="Correspondencia">✉️</button>
-      <button class="hotspot" id="hs-jars" style="left:74%; top:44%;" title="Frascos">🧪</button>
-    </div>
-    <div id="hotspots-2" style="display:none;">
-      <button class="hotspot" id="hs-balanza" style="left:48%; top:56%;" title="Balanza">⚖️</button>
-      <button class="hotspot" id="hs-fechas" style="left:70%; top:44%;" title="Panel de fechas">🔘</button>
-    </div>
-    <div id="hotspots-3" style="display:none;">
-      <button class="hotspot" id="hs-reloj" style="left:13%; top:40%;" title="Reloj de pie">🕰️</button>
-      <button class="hotspot" id="hs-caja" style="left:51%; top:44%;" title="Caja fuerte">🔒</button>
-      <button class="hotspot" id="hs-proclama" style="left:76%; top:75%;" title="Proclama">📜</button>
-    </div>
-    <div id="hotspots-4" style="display:none;">
-      <button class="hotspot" id="hs-tipos" style="left:27%; top:38%;" title="Cajones de tipos">🔤</button>
-      <button class="hotspot" id="hs-tinta" style="left:80%; top:65%;" title="Tinta y viscosímetro">🧴</button>
-      <button class="hotspot" id="hs-prensa" style="left:39%; top:38%;" title="Prensa de prueba">🗜️</button>
-    </div>
-    <div id="hotspots-5" style="display:none;">
-      <button class="hotspot" id="hs-cifrado" style="left:80%; top:38%;" title="Cifrado litúrgico">🔐</button>
-      <button class="hotspot" id="hs-peso" style="left:63%; top:58%;" title="Peso del pecado">⚖️</button>
-      <button class="hotspot" id="hs-campanario" style="left:15%; top:30%;" title="Campanario">🔔</button>
-    </div>
-    <div id="hotspots-6" style="display:none;">
-      <button class="hotspot" id="hs-banderas" style="left:45%; top:38%;" title="Panel de banderas">🚩</button>
-      <button class="hotspot" id="hs-cerrojo-militar" style="left:78%; top:44%;" title="Cerrojo militar">🎖️</button>
-      <button class="hotspot" id="hs-balcon" style="left:22%; top:35%; display:none;" title="Balcón">📢</button>
-    </div>
-    <div id="hotspots-7" style="display:none;">
-      <button class="hotspot" id="hs-verificar" style="left:47%; top:60%;" title="Verificar el Acta">🕯️</button>
-    </div>
-    <div id="hotspots-8" style="display:none;">
-      <button class="hotspot" id="hs-baterias" style="left:20%; top:55%;" title="Baterías de cañones">💣</button>
-      <button class="hotspot" id="hs-polvorin" style="left:83%; top:50%;" title="Polvorín">🔓</button>
-      <button class="hotspot" id="hs-bandera" style="left:51%; top:25%;" title="Bandera">🚩</button>
-    </div>
-    <div id="hotspots-9" style="display:none;">
-      <button class="hotspot" id="hs-manifiesto" style="left:20%; top:65%;" title="Cajas y manifiesto">📦</button>
-      <button class="hotspot" id="hs-grua" style="left:63%; top:35%;" title="Grúa de carga">🏗️</button>
-      <button class="hotspot" id="hs-mosaico" style="left:82%; top:70%;" title="Mosaico de la aduana">🔆</button>
-    </div>
-    <div id="hotspots-10" style="display:none;">
-      <button class="hotspot" id="hs-decreto" style="left:39%; top:42%;" title="El Decreto Cruzado">📜</button>
-      <button class="hotspot" id="hs-archivo" style="left:63%; top:52%;" title="El Archivo Confidencial">🗃️</button>
-      <button class="hotspot" id="hs-balanza-influencias" style="left:79%; top:66%;" title="La Balanza de Influencias">⚖️</button>
-    </div>
-    <div id="hotspots-11" style="display:none;">
-      <button class="hotspot" id="hs-empaquetado" style="left:53%; top:33%;" title="La carreta cargada">🛒</button>
-      <button class="hotspot" id="hs-cifrado-posta" style="left:17%; top:60%;" title="Cifrado de la Posta">🗺️</button>
-      <button class="hotspot" id="hs-enganche" style="left:85%; top:63%;" title="El enganche de la carreta">🪢</button>
+  <div id="hud" style="display:none;">
+    <div id="objective"><b>Objetivo</b><span id="objective-text"></span></div>
+    <button id="hint-btn" title="Pista">?</button>
+  </div>
+
+  <!-- ESCENA 1: LA PULPERÍA CLANDESTINA -->
+  <div class="scene" id="scene-1" style="background-image:url('escena1-pulperia.jpg');">
+    <button class="hotspot" id="hs-carta" style="left:38%; top:56%; width:26%; height:22%;"></button>
+  </div>
+
+  <!-- ESCENA 2: LA TERTULIA DE LA JABONERÍA -->
+  <div class="scene" id="scene-2" style="background-image:url('escena2-jaboneria.jpg');">
+    <button class="hotspot" id="hs-sacerdote" style="left:6%; top:34%; width:16%; height:44%;"></button>
+    <button class="hotspot" id="hs-diplomatico" style="left:47%; top:30%; width:16%; height:48%;"></button>
+    <button class="hotspot" id="hs-comerciante" style="left:65%; top:28%; width:17%; height:50%;"></button>
+  </div>
+
+  <!-- ESCENA 3: LOS PASILLOS DEL CABILDO -->
+  <div class="scene" id="scene-3" style="background-image:url('escena3-cabildo.jpg');">
+    <button class="hotspot" id="hs-cofre" style="left:36%; top:44%; width:26%; height:34%;"></button>
+    <button class="hotspot" id="hs-cuadro" style="left:8%; top:8%; width:26%; height:34%;"></button>
+    <button class="hotspot" id="hs-libro" style="left:37%; top:30%; width:22%; height:16%;"></button>
+  </div>
+
+  <div id="inventory-bar" style="display:none;"></div>
+
+  <div id="win-screen">
+    <h2>El Cabildo Abierto ha decidido</h2>
+    <p>Con el mensaje entregado, la confianza de los notables ganada y el decreto en tus manos, la noticia corre por Buenos Aires: el pueblo será escuchado. Faltan pocos días para el 25 de Mayo. Tu parte en la historia está cumplida.</p>
+    <button class="btn" id="restart-btn">Volver a empezar</button>
+  </div>
+
+  <!-- MODAL: CIFRADO (Escena 1) -->
+  <div class="modal-backdrop" id="modal-carta">
+    <div class="modal-box">
+      <h3>La carta cifrada</h3>
+      <p>Sobre la mesa manchada de vino encontrás una nota escrita con un cifrado por sustitución. El pulpero murmura algo sobre "las dos veces que los ingleses quisieron quedarse con esto"...</p>
+      <div class="cipher-text" id="cipher-display">EJCECDWEQ</div>
+      <p style="font-size:13px; color:#c9a865;">¿Qué dice el mensaje una vez descifrado?</p>
+      <div class="choice-list" id="cipher-choices"></div>
+      <div class="feedback" id="cipher-feedback"></div>
+      <button class="btn small" data-close>Cerrar</button>
     </div>
   </div>
 
-  <div id="objective-banner"><b>Objetivo:</b> <span id="objective-text"></span></div>
-  <button id="advance-btn">Continuar →</button>
-  <button id="hint-btn">🕵️ Pista</button>
-
-  <div id="inventory-bar"><div id="inventory-empty">Todavía no tenés nada</div></div>
-</div>
-
-<!-- Modal: cifrado (Nivel 1) -->
-<div class="modal-backdrop" id="modal-cipher">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-cipher">✕</button>
-    <h2>Carta interceptada</h2>
-    <p>Un mensaje cifrado según la numeración de la Real Ordenanza. Descifrando cada número como una letra
-    del alfabeto correspondiente, la carta revela el punto de encuentro. ¿Cuál de estas opciones es la
-    correcta?</p>
-    <div id="cipher-options"></div>
-    <div class="msg" id="cipher-msg"></div>
+  <!-- MODAL: TERTULIA (Escena 2) - genérico para los 3 personajes -->
+  <div class="modal-backdrop" id="modal-dialogo">
+    <div class="modal-box">
+      <h3 id="dialogo-nombre">Personaje</h3>
+      <p id="dialogo-texto">...</p>
+      <div class="suspicion-meter" id="suspicion-meter"></div>
+      <div class="choice-list" id="dialogo-choices"></div>
+      <div class="feedback" id="dialogo-feedback"></div>
+      <button class="btn small" data-close>Cerrar</button>
+    </div>
   </div>
-</div>
 
-<!-- Modal: frascos (Nivel 1) -->
-<div class="modal-backdrop" id="modal-jars">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-jars">✕</button>
-    <h2>Los frascos del boticario</h2>
-    <p>Cuatro frascos con pesos grabados en onzas antiguas. El almanaque dice que deben tocarse en orden
-    creciente de peso para liberar el compartimento oculto del mostrador.</p>
-    <div id="jars-buttons"></div>
-    <div class="msg" id="jars-msg"></div>
+  <!-- MODAL: CUADRO / LIBRO (pistas escena 3) -->
+  <div class="modal-backdrop" id="modal-pista-objeto">
+    <div class="modal-box">
+      <h3 id="pista-titulo">Objeto</h3>
+      <p id="pista-texto">...</p>
+      <button class="btn small" data-close>Cerrar</button>
+    </div>
   </div>
-</div>
 
-<!-- Modal: balanza (Nivel 2) -->
-<div class="modal-backdrop" id="modal-balanza">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-balanza">✕</button>
-    <h2>La balanza de las milicias</h2>
-    <p>El platillo de los <b>Patricios</b> pesa 600 y el de los <b>Arribeños</b> pesa 450.
-    ¿Qué peso hay que sumar al platillo de los Arribeños para equilibrar la balanza?</p>
-    <div id="balanza-options"></div>
-    <div class="msg" id="balanza-msg"></div>
+  <!-- MODAL: COFRE (Escena 3) -->
+  <div class="modal-backdrop" id="modal-cofre">
+    <div class="modal-box">
+      <h3>El cofre de tres discos</h3>
+      <p>Un candado mecánico con tres discos grabados: el sol de mayo, la balanza de la justicia y el catalejo del navegante. Cada disco debe marcar el número o palabra correcta.</p>
+      <div class="dial-row">
+        <div style="flex:1;">
+          <div class="symbol-label">☀ Sol (día)</div>
+          <select id="dial-sol"></select>
+        </div>
+        <div style="flex:1;">
+          <div class="symbol-label">⚖ Balanza (mes)</div>
+          <select id="dial-balanza"></select>
+        </div>
+        <div style="flex:1;">
+          <div class="symbol-label">🔭 Catalejo (año)</div>
+          <select id="dial-catalejo"></select>
+        </div>
+      </div>
+      <button class="btn small" id="cofre-submit">Alinear discos</button>
+      <div class="feedback" id="cofre-feedback"></div>
+      <button class="btn small" data-close>Cerrar</button>
+    </div>
   </div>
-</div>
 
-<!-- Modal: fechas (Nivel 2) -->
-<div class="modal-backdrop" id="modal-fechas">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-fechas">✕</button>
-    <h2>El panel de fechas</h2>
-    <p>Dos discos giratorios, cada uno con un año grabado. Hay que marcar el año de la <b>Reconquista</b>
-    de Buenos Aires y el año de la <b>Defensa</b> frente a las invasiones inglesas.</p>
-    <div class="dial-row" id="fechas-dials"></div>
-    <button class="action" id="fechas-submit" style="display:block; width:auto;">Girar el panel</button>
-    <div class="msg" id="fechas-msg"></div>
+  <!-- MODAL: HINT -->
+  <div class="modal-backdrop" id="modal-hint">
+    <div class="modal-box">
+      <h3>Pista</h3>
+      <p id="hint-text"></p>
+      <button class="btn small" data-close>Cerrar</button>
+    </div>
   </div>
+
 </div>
 
-<!-- Modal: reloj (Nivel 3) -->
-<div class="modal-backdrop" id="modal-reloj">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-reloj">✕</button>
-    <h2>El reloj de pie</h2>
-    <p>Sincronizá las manecillas con la hora en que comenzó el Cabildo Abierto del 22 de mayo de 1810.</p>
-    <div class="dial-row" id="reloj-dials"></div>
-    <button class="action" id="reloj-submit" style="display:block; width:auto;">Ajustar el reloj</button>
-    <div class="msg" id="reloj-msg"></div>
+<div id="install-banner" style="display:none; position:fixed; left:50%; bottom:60px; transform:translateX(-50%); background:#17110a; border:1px solid #8a6a35; color:#f0e6d2; padding:10px 16px; border-radius:8px; font-size:13px; z-index:200; box-shadow:0 6px 20px rgba(0,0,0,0.5); text-align:center;">
+  Instalá este juego en tu pantalla de inicio
+  <div style="margin-top:8px;">
+    <button class="btn small" id="install-btn">Instalar</button>
+    <button class="btn small" id="install-dismiss" style="background:#2a2a2a; border-color:#555;">Ahora no</button>
   </div>
-</div>
-
-<!-- Modal: caja fuerte (Nivel 3) -->
-<div class="modal-backdrop" id="modal-caja">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-caja">✕</button>
-    <h2>La caja fuerte</h2>
-    <p>Sobre la pared hay una pizarra con los votos del Cabildo Abierto. Según ese recuento,
-    ¿cuántos votos favorecieron la formación de la Junta patria?</p>
-    <div id="caja-options"></div>
-    <div class="msg" id="caja-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: proclama final (Nivel 3) -->
-<div class="modal-backdrop" id="modal-proclama">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-proclama">✕</button>
-    <h2>La Proclama Patriótica</h2>
-    <p id="proclama-text">El documento está listo sobre el escritorio, pero hace falta el sello oficial
-    para darle validez.</p>
-    <button class="action" id="proclama-seal-btn" style="display:block; width:auto;" disabled>Sellar y escapar</button>
-    <div class="msg" id="proclama-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: pista -->
-<div class="modal-backdrop" id="modal-hint">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-hint">✕</button>
-    <h2>Un contacto anónimo susurra...</h2>
-    <p id="hint-text"></p>
-  </div>
-</div>
-
-<!-- Modal: tipos móviles (Nivel 4) -->
-<div class="modal-backdrop" id="modal-tipos">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-tipos">✕</button>
-    <h2>El componedor</h2>
-    <p>Los cajones de tipos de plomo están revueltos. Hay que elegir la frase correcta para armar
-    la proclama falsa, letra por letra, en espejo, como haría un tipógrafo real.</p>
-    <div id="tipos-options"></div>
-    <div class="msg" id="tipos-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: tinta (Nivel 4) -->
-<div class="modal-backdrop" id="modal-tinta">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-tinta">✕</button>
-    <h2>La tinta y el viscosímetro</h2>
-    <p>El manual de imprenta antiguo da la fórmula exacta para que la tinta agarre en papel de mala
-    calidad. ¿Qué proporción de aceite de linaza y negro de humo hay que mezclar?</p>
-    <div id="tinta-options"></div>
-    <div class="msg" id="tinta-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: prensa (Nivel 4) -->
-<div class="modal-backdrop" id="modal-prensa">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-prensa">✕</button>
-    <h2>La prensa de prueba</h2>
-    <p>El mecanismo de presión está trabado. Para que la copia salga legible sin romper la máquina,
-    hay que ajustar los dos tornillos laterales por igual.</p>
-    <div id="prensa-options"></div>
-    <div class="msg" id="prensa-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: cifrado litúrgico (Nivel 5) -->
-<div class="modal-backdrop" id="modal-cifrado">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-cifrado">✕</button>
-    <h2>El cifrado litúrgico</h2>
-    <p>La placa de bronce tiene grabados los Salmos leídos en la misa del día. El orden de sus números
-    revela la combinación del cerrojo.</p>
-    <div id="cifrado-options"></div>
-    <div class="msg" id="cifrado-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: peso del pecado (Nivel 5) -->
-<div class="modal-backdrop" id="modal-peso">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-peso">✕</button>
-    <h2>El peso del pecado</h2>
-    <p>La puerta equivale a nueve pesos de bronce de 45 libras cada uno, grabados con los Mandamientos,
-    más uno especial que pesa el doble. ¿Cuánto hay que cargar en la balanza auxiliar para igualarla?</p>
-    <div id="peso-options"></div>
-    <div class="msg" id="peso-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: campanario (Nivel 5) -->
-<div class="modal-backdrop" id="modal-campanario">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-campanario">✕</button>
-    <h2>El campanario</h2>
-    <p>Las cuerdas de las campanas están cortadas. Hay cáñamo de repuesto: solo falta el nudo marinero
-    correcto para unir los pedales a los badajos.</p>
-    <div id="campanario-options"></div>
-    <div class="msg" id="campanario-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: código de banderas (Nivel 6) -->
-<div class="modal-backdrop" id="modal-banderas">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-banderas">✕</button>
-    <h2>El panel de banderas</h2>
-    <p>Un mensaje interceptado describe el cambio de guardia del Fuerte en código naval. ¿Qué combinación
-    de banderas ordena a los soldados abandonar temporalmente su posición?</p>
-    <div id="banderas-options"></div>
-    <div class="msg" id="banderas-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: cerrojo militar (Nivel 6) -->
-<div class="modal-backdrop" id="modal-cerrojo-militar">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-cerrojo-militar">✕</button>
-    <h2>El cerrojo militar</h2>
-    <p>Un organigrama en el escritorio del ayudante muestra la jerarquía de mando. ¿En qué orden hay que
-    alinear los símbolos de los tres rangos en la cerradura?</p>
-    <div id="cerrojo-militar-options"></div>
-    <div class="msg" id="cerrojo-militar-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: el balcón (Nivel 6, clímax) -->
-<div class="modal-backdrop" id="modal-balcon">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-balcon">✕</button>
-    <h2>El balcón de la libertad</h2>
-    <p>La multitud espera abajo. Solo hay que presentar el Acta en el momento justo, cuando la plaza
-    hace silencio.</p>
-    <p><b>Estado de la multitud:</b> <span id="balcon-estado">...</span></p>
-    <button class="action" id="balcon-presentar-btn" style="display:block; width:auto;">Presentar el Acta</button>
-    <div class="msg" id="balcon-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: verificación final (Epílogo) -->
-<div class="modal-backdrop" id="modal-verificar">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-verificar">✕</button>
-    <h2>Verificación final</h2>
-    <p id="verificar-text">Saavedra, Moreno y Paso esperan en silencio. Antes de dar el Acta por válida,
-    hay que comprobar que no fue adulterada, comparándola con el pergamino original firmado por Belgrano.</p>
-    <button class="action" id="verificar-luz-btn" style="display:block; width:auto;">Acercar a la luz de la lámpara</button>
-    <button class="action" id="verificar-sello-btn" style="display:block; width:auto;" disabled>Colocar el sello final</button>
-    <div class="msg" id="verificar-msg"></div>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-<!-- Modal: decreto cruzado (Nivel 10) -->
-<div class="modal-backdrop" id="modal-decreto">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-decreto">✕</button>
-    <h2>El Decreto Cruzado</h2>
-    <p>Alineando los cilindros de madera grabados con decretos de la Junta, aparece un mensaje oculto
-    sobre los movimientos de las tropas del exvirrey Liniers. ¿Cuál es?</p>
-    <div id="decreto-options"></div>
-    <div class="msg" id="decreto-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: archivo confidencial (Nivel 10) -->
-<div class="modal-backdrop" id="modal-archivo">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-archivo">✕</button>
-    <h2>El Archivo Confidencial</h2>
-    <p>El cofre se abre con la fecha clave de las reuniones del Cabildo de julio de 1810.</p>
-    <div id="archivo-options"></div>
-    <div class="msg" id="archivo-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: balanza de influencias (Nivel 10) -->
-<div class="modal-backdrop" id="modal-balanza-influencias">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-balanza-influencias">✕</button>
-    <h2>La Balanza de Influencias</h2>
-    <p>Clero, Milicias y Hacendados deben quedar en equilibrio para no romper el frágil pacto de gobierno.
-    ¿Qué combinación de pesos lo logra?</p>
-    <div id="balanza-influencias-options"></div>
-    <div class="msg" id="balanza-influencias-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: empaquetado (Nivel 11) -->
-<div class="modal-backdrop" id="modal-empaquetado">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-empaquetado">✕</button>
-    <h2>El empaquetado del pertrecho</h2>
-    <p>Pólvora, munición y raciones deben repartirse entre los dos ejes de la carreta para que no vuelque
-    en los caminos de tierra anegados.</p>
-    <div id="empaquetado-options"></div>
-    <div class="msg" id="empaquetado-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: cifrado de la posta (Nivel 11) -->
-<div class="modal-backdrop" id="modal-cifrado-posta">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-cifrado-posta">✕</button>
-    <h2>El cifrado de la posta</h2>
-    <p>Una plantilla perforada sobre la Carta de Navegación Comercial revela instrucciones ocultas entre
-    las líneas de texto común. ¿Qué ruta indican?</p>
-    <div id="cifrado-posta-options"></div>
-    <div class="msg" id="cifrado-posta-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: enganche de las picadas (Nivel 11) -->
-<div class="modal-backdrop" id="modal-enganche">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-enganche">✕</button>
-    <h2>El enganche de las picadas</h2>
-    <p>Hay que reparar la tracción y los frenos con cuerdas de cuero crudo antes de que amanezca. ¿Qué
-    nudo de enganche rápido aguanta la tensión del camino?</p>
-    <div id="enganche-options"></div>
-    <div class="msg" id="enganche-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: código de baterías (Nivel 8) -->
-<div class="modal-backdrop" id="modal-baterias">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-baterias">✕</button>
-    <h2>El código de las baterías</h2>
-    <p>Un mensaje cifrado con la clave <b>VIGENCIA</b>. Descifrándolo se obtiene la secuencia de mechas
-    que desactiva los cañones sin encenderlos.</p>
-    <div id="baterias-options"></div>
-    <div class="msg" id="baterias-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: polvorín inundado (Nivel 8) -->
-<div class="modal-backdrop" id="modal-polvorin">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-polvorin">✕</button>
-    <h2>El polvorín inundado</h2>
-    <p>El reloj de la esclusa marca <b>05:34</b>. Hay que ajustar los diales para igualar esa hora exacta
-    y abrir la esclusa de agua antes de que el temporizador llegue a cero.</p>
-    <div class="dial-row" id="polvorin-dials"></div>
-    <button class="action" id="polvorin-submit" style="display:block; width:auto;">Abrir la esclusa</button>
-    <div class="msg" id="polvorin-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: arriado de bandera (Nivel 8) -->
-<div class="modal-backdrop" id="modal-bandera">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-bandera">✕</button>
-    <h2>El arriado de la bandera</h2>
-    <p>La polea de la driza está oxidada y trabada. ¿Qué combinación de nudo y tensión la libera sin
-    romper la cuerda?</p>
-    <div id="bandera-options"></div>
-    <div class="msg" id="bandera-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: manifiesto falso (Nivel 9) -->
-<div class="modal-backdrop" id="modal-manifiesto">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-manifiesto">✕</button>
-    <h2>El manifiesto falso</h2>
-    <p>El manifiesto dice que las cajas de "Textiles" pesan 20 kg y las de "Herramientas" 35 kg. Una caja
-    marcada "Textiles - Lisboa" pesa 35 kg en la balanza real. ¿Qué esconde?</p>
-    <div id="manifiesto-options"></div>
-    <div class="msg" id="manifiesto-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: grúa de carga (Nivel 9) -->
-<div class="modal-backdrop" id="modal-grua">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-grua">✕</button>
-    <h2>La grúa de carga</h2>
-    <p>La grúa de vapor necesita la presión justa para levantar la caja sospechosa sin romper el guinche
-    ni dejarla caer.</p>
-    <div id="grua-options"></div>
-    <div class="msg" id="grua-msg"></div>
-  </div>
-</div>
-
-<!-- Modal: mosaico de la aduana (Nivel 9) -->
-<div class="modal-backdrop" id="modal-mosaico">
-  <div class="modal-box">
-    <button class="modal-close" data-close="modal-mosaico">✕</button>
-    <h2>El mosaico del Sol</h2>
-    <p>El piso de la Aduana tiene un mosaico circular con un sol en el centro. Presionando las baldosas en
-    el orden correcto se abre el depósito fiscal para guardar las armas confiscadas.</p>
-    <div id="mosaico-options"></div>
-    <div class="msg" id="mosaico-msg"></div>
-  </div>
-</div>
-
-<div id="win-screen">
-  <h2>¡La Primera Junta ha nacido!</h2>
-  <p id="win-text">Sellaste la proclama a tiempo y escapaste del despacho antes de que la guardia real
-  derribara la puerta. El 25 de mayo de 1810, Buenos Aires amanece con su primer gobierno patrio.</p>
-  <button id="restart-btn" style="background:transparent;border:1px solid #c9a227;color:#c9a227;padding:9px 18px;border-radius:20px;font-size:13px;">Jugar de nuevo</button>
 </div>
 
 <script>
-(() => {
+(function(){
   const state = {
-    level: 1,
-    cipherSolved: false, jarsSolved: false,
-    balanzaSolved: false, fechasSolved: false,
-    relojSolved: false, cajaSolved: false,
-    tiposSolved: false, tintaSolved: false, prensaSolved: false,
-    cifradoSolved: false, pesoSolved: false, campanarioSolved: false,
-    banderasSolved: false, cerrojoMilitarSolved: false, balconSolved: false,
-    verificadoSolved: false,
-    bateriasSolved: false, polvorinSolved: false, banderaBajadaSolved: false,
-    manifiestoSolved: false, gruaSolved: false, mosaicoSolved: false,
-    decretoSolved: false, archivoSolved: false, balanzaInfluenciasSolved: false,
-    empaquetadoSolved: false, cifradoPostaSolved: false, engancheSolved: false,
+    scene: 1,
+    cartaSolved: false,
+    sacerdoteOk: false,
+    diplomaticoOk: false,
+    comercianteOk: false,
+    sospecha: 0,
+    cofreSolved: false,
+    inventory: []
   };
-  const inventory = []; // { id, label, icon }
 
   const OBJECTIVES = {
-    1: 'Descubrí el punto de reunión secreto. Revisá la correspondencia y los almanaques.',
-    2: 'Encontrá la lista oficial de la Junta. Equilibrá las milicias y recordá las fechas de la Reconquista y Defensa.',
-    3: '¡Sellá la Proclama y escapá! Sincronizá el reloj con el Cabildo Abierto y resolvé la votación para abrir la caja fuerte.',
-    4: '¡Tirá la proclama contrapropaganda! Componé el tipo en espejo, mezclá la tinta correcta y ajustá la presión de la prensa antes del amanecer.',
-    5: '¡Abrí la Catedral y tocá las campanas! Descifrá el Cifrado Litúrgico para los cerrojos y equilibrá el "Peso del Pecado" para mover la puerta.',
-    6: '¡Presentá el Acta! Distraé a la guardia con el código de banderas, abrí el cerrojo militar y salí al balcón.',
-    7: 'Entregá y consagrá. Verificá la autenticidad del Acta contra el original de Belgrano usando la lámpara de aceite.',
-    8: 'Asegurá el Fuerte. ¡Desactivá las baterías, inundá el polvorín y arriá la bandera realista antes de que sea tarde!',
-    9: '¡Intercepta el contrabando! Pesá las cajas para identificar las armas, operá la grúa con cuidado y sellá el depósito fiscal.',
-    10: '¡Asegurá los despachos! Descifrá el Decreto Cruzado, abrí el Archivo Confidencial y equilibrá la Balanza de Influencias.',
-    11: '¡Partí hacia el Norte! Equilibrá la carga, descifrá la ruta oculta y asegurá el enganche de la carreta antes del amanecer.',
-  };
-  const BACKGROUNDS = {
-    1: 'botica-bg.jpg', 2: 'pasadizos-bg.jpg', 3: 'despacho-bg.jpg',
-    4: 'imprenta-bg.jpg', 5: 'catedral-bg.jpg',
-    6: 'fuerte-bg.jpg', 7: 'consagracion-bg.jpg',
-    8: 'resistencia-bg.jpg', 9: 'aduana-bg.jpg',
-    10: 'cuartel-bg.jpg', 11: 'camino-norte-bg.jpg',
+    1: 'Descifrá el mensaje oculto en la carta de la pulpería para saber adónde dirigirte.',
+    2: 'Ganate la confianza del sacerdote, el diplomático y el comerciante sin levantar sospechas.',
+    3: 'Buscá pistas en la sala y alineá los tres discos del cofre para acceder al decreto.'
   };
 
   function addItem(id, label, icon) {
-    if (inventory.some(i => i.id === id)) return;
-    inventory.push({ id, label, icon });
+    if (state.inventory.find(i => i.id === id)) return;
+    state.inventory.push({id, label, icon});
     renderInventory();
   }
-  function hasItem(id) { return inventory.some(i => i.id === id); }
+  function hasItem(id) { return !!state.inventory.find(i => i.id === id); }
 
   function renderInventory() {
-    const el = document.getElementById('inventory-bar');
-    if (inventory.length === 0) {
-      el.innerHTML = '<div id="inventory-empty">Todavía no tenés nada</div>';
-      return;
+    const bar = document.getElementById('inventory-bar');
+    bar.innerHTML = '';
+    state.inventory.forEach(it => {
+      const el = document.createElement('div');
+      el.className = 'inv-item';
+      el.innerHTML = `<span class="ico">${it.icon}</span><span>${it.label}</span>`;
+      bar.appendChild(el);
+    });
+  }
+
+  function setScene(n) {
+    state.scene = n;
+    for (let i = 1; i <= 3; i++) {
+      document.getElementById('scene-' + i).classList.toggle('active', i === n);
     }
-    el.innerHTML = inventory.map(i =>
-      `<div class="inv-item"><div class="ic">${i.icon}</div><span>${i.label}</span></div>`
-    ).join('');
-  }
-
-  function showToast(text) {
-    const t = document.getElementById('toast');
-    t.textContent = text;
-    t.classList.add('show');
-    clearTimeout(showToast._tid);
-    showToast._tid = setTimeout(() => t.classList.remove('show'), 2800);
-  }
-
-  function openModal(id) { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('[data-close]').forEach(btn => {
-    btn.addEventListener('click', () => closeModal(btn.dataset.close));
-  });
-
-  function setLevel(n) {
-    state.level = n;
-    document.getElementById('scene').style.backgroundImage = `url('${BACKGROUNDS[n]}')`;
     document.getElementById('objective-text').textContent = OBJECTIVES[n];
-    for (let i = 1; i <= 11; i++) {
-      document.getElementById('hotspots-' + i).style.display = (n === i) ? 'block' : 'none';
-    }
-    document.getElementById('advance-btn').style.display = 'none';
-    if (n === 6) {
-      addItem('acta', 'Acta de la Junta', '📜');
-      document.getElementById('hs-balcon').style.display = 'none';
-    }
   }
 
-  function checkLevelComplete() {
-    const btn = document.getElementById('advance-btn');
-    if (state.level === 1 && state.cipherSolved && state.jarsSolved) {
-      addItem('mapa', 'Mapa de la reunión', '🗺️');
-      btn.textContent = 'Ir al Cabildo →';
-      btn.style.display = 'block';
-    } else if (state.level === 2 && state.balanzaSolved && state.fechasSolved) {
-      addItem('lista', 'Lista oficial de la Junta', '📋');
-      btn.textContent = 'Ir al despacho del Virrey →';
-      btn.style.display = 'block';
-    } else if (state.level === 3 && state.relojSolved && state.cajaSolved) {
-      addItem('sello', 'Sello oficial', '🖋️');
-    } else if (state.level === 4 && state.tiposSolved && state.tintaSolved && state.prensaSolved) {
-      addItem('contrapropaganda', 'Proclama contrapropaganda', '📰');
-      btn.textContent = 'Ir a la Catedral →';
-      btn.style.display = 'block';
-    } else if (state.level === 5 && state.cifradoSolved && state.pesoSolved && state.campanarioSolved) {
-      addItem('campanas', 'Campanas repicando', '🔔');
-      btn.textContent = 'Ir a la Torre del Fuerte →';
-      btn.style.display = 'block';
-    } else if (state.level === 6) {
-      if (state.balconSolved) {
-        btn.textContent = 'Ir al Cabildo Abierto →';
-        btn.style.display = 'block';
-      } else if (state.banderasSolved && state.cerrojoMilitarSolved) {
-        if (document.getElementById('hs-balcon').style.display !== 'flex') {
-          document.getElementById('hs-balcon').style.display = 'flex';
-          showToast('El paso está despejado. Salí al balcón para presentar el Acta.');
-        }
-      }
-    } else if (state.level === 8 && state.bateriasSolved && state.polvorinSolved && state.banderaBajadaSolved) {
-      addItem('fuerte', 'Fuerte asegurado', '🏰');
-      btn.textContent = 'Ir a la Aduana →';
-      btn.style.display = 'block';
-    } else if (state.level === 9 && state.manifiestoSolved && state.gruaSolved && state.mosaicoSolved) {
-      addItem('armas', 'Armas confiscadas', '⚔️');
-      btn.textContent = 'Ir al Cuartel de Saavedra →';
-      btn.style.display = 'block';
-    } else if (state.level === 10 && state.decretoSolved && state.archivoSolved && state.balanzaInfluenciasSolved) {
-      addItem('despachos', 'Despachos secretos', '📨');
-      btn.textContent = 'Ir al Camino Real →';
-      btn.style.display = 'block';
-    } else if (state.level === 11 && state.empaquetadoSolved && state.cifradoPostaSolved && state.engancheSolved) {
-      addItem('expedicion', 'Expedición al Norte asegurada', '🐎');
-      triggerFinalWin();
-    }
-  }
-
-  function triggerFinalWin() {
-    document.getElementById('win-text').textContent =
-      'El Acta quedó consagrada, el Fuerte asegurado y el contrabando bajo custodia. En el cuartel de Saavedra ' +
-      'se neutralizó el complot contra la Junta, y la primera expedición patriota parte hacia el Norte antes del ' +
-      'amanecer. La Revolución de Mayo queda asegurada en todos los frentes.';
-    document.getElementById('win-screen').style.display = 'flex';
-  }
-
-  document.getElementById('advance-btn').addEventListener('click', () => {
-    if (state.level === 1) setLevel(2);
-    else if (state.level === 2) setLevel(3);
-    else if (state.level === 4) setLevel(5);
-    else if (state.level === 5) setLevel(6);
-    else if (state.level === 6) setLevel(7);
-    else if (state.level === 8) setLevel(9);
-    else if (state.level === 9) setLevel(10);
-    else if (state.level === 10) setLevel(11);
+  function openModal(id) { document.getElementById(id).classList.add('active'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+  document.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', (e) => closeModal(e.target.closest('.modal-backdrop').id));
+  });
+  document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(backdrop.id); });
   });
 
-  // ---------- Inicio ----------
   document.getElementById('start-btn').addEventListener('click', () => {
     document.getElementById('start-screen').style.display = 'none';
-    document.getElementById('game').style.display = 'block';
-    setLevel(1);
+    document.getElementById('hud').style.display = 'flex';
+    document.getElementById('inventory-bar').style.display = 'flex';
+    setScene(1);
   });
 
-  // ================= NIVEL 1 =================
-  const cipherOptions = [
-    { label: 'En la casa de Rodríguez Peña, medianoche.', correct: true },
-    { label: 'En el Fuerte, al amanecer.', correct: false },
-    { label: 'En la Recova, a las tres.', correct: false },
-    { label: 'En el puerto, al atardecer.', correct: false },
+  document.getElementById('restart-btn').addEventListener('click', () => location.reload());
+
+  // ---------- ESCENA 1: CIFRADO ----------
+  const CIPHER_OPTIONS = [
+    'La reunión secreta es en la calle Chacabuco',
+    'El virrey duplicó la guardia del Fuerte',
+    'Las tropas realistas parten al amanecer',
+    'El cargamento llega esta noche al puerto'
   ];
-  function renderCipher() {
-    const el = document.getElementById('cipher-options');
-    el.innerHTML = '';
-    cipherOptions.forEach(opt => {
+  const CIPHER_CORRECT = 'La reunión secreta es en la calle Chacabuco';
+
+  function renderCipherChoices() {
+    const box = document.getElementById('cipher-choices');
+    box.innerHTML = '';
+    CIPHER_OPTIONS.forEach(opt => {
       const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = opt.label;
-      b.disabled = state.cipherSolved;
+      b.className = 'choice-btn';
+      b.textContent = opt;
       b.addEventListener('click', () => {
-        if (state.cipherSolved) return;
-        if (opt.correct) {
-          state.cipherSolved = true;
-          addItem('carta', 'Carta cifrada', '✉️');
-          document.getElementById('cipher-msg').textContent = 'La carta revela el punto de encuentro.';
-          renderCipher();
-          checkLevelComplete();
+        const fb = document.getElementById('cipher-feedback');
+        if (opt === CIPHER_CORRECT) {
+          b.classList.add('correct');
+          fb.textContent = 'Correcto. El mensaje habla de una reunión en la calle Chacabuco.';
+          fb.classList.add('ok');
+          state.cartaSolved = true;
+          addItem('mensaje', 'Mensaje descifrado', '✉️');
+          checkScene1Complete();
         } else {
-          document.getElementById('cipher-msg').textContent = 'Esa combinación de números no da un mensaje coherente.';
+          b.classList.add('wrong');
+          fb.classList.remove('ok');
+          fb.textContent = 'No parece encajar con el cifrado. Probá otra lectura.';
         }
       });
-      el.appendChild(b);
+      box.appendChild(b);
     });
   }
-  renderCipher();
-  document.getElementById('hs-cipher').addEventListener('click', () => openModal('modal-cipher'));
+  renderCipherChoices();
 
-  const jarsTarget = [1, 2, 3, 4];
-  let jarsProgress = [];
-  function renderJars() {
-    const el = document.getElementById('jars-buttons');
-    el.innerHTML = '';
-    const shuffled = [2, 4, 1, 3];
-    shuffled.forEach(w => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.style.display = 'inline-block';
-      b.style.width = '46%';
-      b.style.textAlign = 'center';
-      b.textContent = w + ' onza' + (w > 1 ? 's' : '');
-      b.disabled = state.jarsSolved;
-      b.addEventListener('click', () => {
-        if (state.jarsSolved) return;
-        jarsProgress.push(w);
-        const idx = jarsProgress.length - 1;
-        if (jarsProgress[idx] !== jarsTarget[idx]) {
-          document.getElementById('jars-msg').textContent = 'El orden no es correcto. Volvés a empezar.';
-          jarsProgress = [];
-          return;
-        }
-        if (jarsProgress.length === jarsTarget.length) {
-          state.jarsSolved = true;
-          addItem('llave', 'Llave antigua', '🗝️');
-          document.getElementById('jars-msg').textContent = 'El compartimento se abre: hay una llave antigua adentro.';
-          renderJars();
-          checkLevelComplete();
-        } else {
-          document.getElementById('jars-msg').textContent = `Correcto hasta ahora (${jarsProgress.length}/4).`;
-        }
-      });
-      el.appendChild(b);
-    });
+  document.getElementById('hs-carta').addEventListener('click', () => openModal('modal-carta'));
+
+  function checkScene1Complete() {
+    if (state.cartaSolved) {
+      setTimeout(() => {
+        closeModal('modal-carta');
+        setScene(2);
+      }, 1200);
+    }
   }
-  renderJars();
-  document.getElementById('hs-jars').addEventListener('click', () => openModal('modal-jars'));
 
-  // ================= NIVEL 2 =================
-  const balanzaOptions = [100, 150, 200, 250];
-  function renderBalanza() {
-    const el = document.getElementById('balanza-options');
-    el.innerHTML = '';
-    balanzaOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.style.display = 'inline-block';
-      b.style.width = '46%';
-      b.style.textAlign = 'center';
-      b.textContent = v;
-      b.disabled = state.balanzaSolved;
-      b.addEventListener('click', () => {
-        if (state.balanzaSolved) return;
-        if (v === 150) {
-          state.balanzaSolved = true;
-          document.getElementById('balanza-msg').textContent = 'La balanza queda perfectamente equilibrada.';
-          renderBalanza();
-          checkLevelComplete();
-        } else {
-          document.getElementById('balanza-msg').textContent = 'La balanza sigue inclinada. Ese peso no es correcto.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderBalanza();
-  document.getElementById('hs-balanza').addEventListener('click', () => openModal('modal-balanza'));
+  // ---------- ESCENA 2: TERTULIA (diálogos) ----------
+  const DIALOGOS = {
+    sacerdote: {
+      nombre: 'El sacerdote',
+      texto: '"Dígame, joven, ¿qué opina de la soberanía que reclaman algunos vecinos ante la ausencia del rey?"',
+      opciones: [
+        { texto: 'Que el rey ya no gobierna, hay que abolir toda autoridad ahora mismo.', correcta: false, resp: 'El sacerdote frunce el ceño: "Cuidado con esas palabras, joven imprudente."' },
+        { texto: 'Que en ausencia del rey, la soberanía vuelve naturalmente al pueblo, con orden y prudencia.', correcta: true, resp: 'El sacerdote asiente pensativo: "Una postura razonable, sin duda."' },
+        { texto: 'Que el Virrey Cisneros debe mantenerse en su cargo sin objeciones.', correcta: false, resp: 'El sacerdote lo mira con desconfianza: "¿Un realista entre nosotros?"' }
+      ]
+    },
+    diplomatico: {
+      nombre: 'El diplomático',
+      texto: '"He oído rumores de movimientos de tropas realistas hacia la ciudad. ¿Qué sabe usted de eso?"',
+      opciones: [
+        { texto: 'Nada, no sé de qué me habla.', correcta: false, resp: 'El diplomático entrecierra los ojos: "Curioso, para ser un mensajero tan activo."' },
+        { texto: 'Sé que se preparan, y por eso conviene actuar con firmeza pero sin provocar un enfrentamiento innecesario.', correcta: true, resp: 'El diplomático sonríe apenas: "Habla con la cabeza fría. Me agrada."' },
+        { texto: 'Sé todo, y pienso que hay que atacar el Fuerte esta misma noche.', correcta: false, resp: 'El diplomático palidece: "Baje la voz, por el amor de Dios."' }
+      ]
+    },
+    comerciante: {
+      nombre: 'El comerciante conservador',
+      texto: '"Todo este alboroto solo trae pérdidas para el comercio. ¿Usted qué busca aquí, joven?"',
+      opciones: [
+        { texto: 'Busco el caos: cuanto más desorden, mejor para la causa.', correcta: false, resp: 'El comerciante llama con la mirada a un criado: "Alguien vigile a este muchacho."' },
+        { texto: 'Busco que el comercio prospere bajo un gobierno propio, ordenado y estable.', correcta: true, resp: 'El comerciante relaja los hombros: "Eso ya suena sensato."' },
+        { texto: 'No busco nada, solo pasaba por aquí.', correcta: false, resp: 'El comerciante levanta una ceja: "Nadie pasa por una tertulia privada por casualidad."' }
+      ]
+    }
+  };
 
-  const fechasYears = [1805, 1805];
-  const YEAR_MIN = 1805, YEAR_MAX = 1810;
-  function renderFechaDials() {
-    const row = document.getElementById('fechas-dials');
-    row.innerHTML = '';
-    const labels = ['Reconquista', 'Defensa'];
-    fechasYears.forEach((y, i) => {
+  const MAX_SOSPECHA = 3;
+
+  function renderSuspicion() {
+    const meter = document.getElementById('suspicion-meter');
+    meter.innerHTML = '';
+    for (let i = 0; i < MAX_SOSPECHA; i++) {
       const d = document.createElement('div');
-      d.className = 'dial';
-      d.innerHTML = `
-        <span class="lbl">${labels[i]}</span>
-        <button data-i="${i}" data-dir="1">▲</button>
-        <div class="val">${y}</div>
-        <button data-i="${i}" data-dir="-1">▼</button>
-      `;
-      row.appendChild(d);
-    });
-    row.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (state.fechasSolved) return;
-        const i = parseInt(btn.dataset.i, 10);
-        const dir = parseInt(btn.dataset.dir, 10);
-        let y = fechasYears[i] + dir;
-        if (y < YEAR_MIN) y = YEAR_MAX;
-        if (y > YEAR_MAX) y = YEAR_MIN;
-        fechasYears[i] = y;
-        renderFechaDials();
-      });
-    });
+      d.className = 'suspicion-dot' + (i < state.sospecha ? ' on' : '');
+      meter.appendChild(d);
+    }
   }
-  renderFechaDials();
-  document.getElementById('hs-fechas').addEventListener('click', () => openModal('modal-fechas'));
-  document.getElementById('fechas-submit').addEventListener('click', () => {
-    if (state.fechasSolved) return;
-    if (fechasYears[0] === 1806 && fechasYears[1] === 1807) {
-      state.fechasSolved = true;
-      document.getElementById('fechas-msg').textContent = 'El panel encaja y se traba en su lugar: las fechas son correctas.';
-      checkLevelComplete();
+
+  function openDialogo(key) {
+    const d = DIALOGOS[key];
+    document.getElementById('dialogo-nombre').textContent = d.nombre;
+    document.getElementById('dialogo-texto').textContent = d.texto;
+    document.getElementById('dialogo-feedback').textContent = '';
+    renderSuspicion();
+    const box = document.getElementById('dialogo-choices');
+    box.innerHTML = '';
+    const solved = { sacerdote: state.sacerdoteOk, diplomatico: state.diplomaticoOk, comerciante: state.comercianteOk }[key];
+    if (solved) {
+      document.getElementById('dialogo-feedback').textContent = 'Ya se ganó la confianza de este personaje.';
+      document.getElementById('dialogo-feedback').classList.add('ok');
     } else {
-      document.getElementById('fechas-msg').textContent = 'El panel no cede. Esas no son las fechas correctas.';
+      d.opciones.forEach(op => {
+        const b = document.createElement('button');
+        b.className = 'choice-btn';
+        b.textContent = op.texto;
+        b.addEventListener('click', () => {
+          const fb = document.getElementById('dialogo-feedback');
+          fb.textContent = op.resp;
+          if (op.correcta) {
+            fb.classList.add('ok');
+            b.classList.add('correct');
+            if (key === 'sacerdote') state.sacerdoteOk = true;
+            if (key === 'diplomatico') state.diplomaticoOk = true;
+            if (key === 'comerciante') state.comercianteOk = true;
+            setTimeout(() => { closeModal('modal-dialogo'); checkScene2Complete(); }, 900);
+          } else {
+            fb.classList.remove('ok');
+            b.classList.add('wrong');
+            state.sospecha = Math.min(MAX_SOSPECHA, state.sospecha + 1);
+            renderSuspicion();
+            if (state.sospecha >= MAX_SOSPECHA) {
+              fb.textContent += ' La guardia empieza a mirar hacia acá. Mejor cambiá de tema y probá con más cuidado.';
+              state.sospecha = 0;
+              setTimeout(() => renderSuspicion(), 50);
+            }
+          }
+        });
+        box.appendChild(b);
+      });
+    }
+    openModal('modal-dialogo');
+  }
+
+  document.getElementById('hs-sacerdote').addEventListener('click', () => openDialogo('sacerdote'));
+  document.getElementById('hs-diplomatico').addEventListener('click', () => openDialogo('diplomatico'));
+  document.getElementById('hs-comerciante').addEventListener('click', () => openDialogo('comerciante'));
+
+  function checkScene2Complete() {
+    if (state.sacerdoteOk && state.diplomaticoOk && state.comercianteOk) {
+      addItem('confianza', 'Confianza ganada', '🤝');
+      setTimeout(() => setScene(3), 400);
+    }
+  }
+
+  // ---------- ESCENA 3: COFRE DE TRES DISCOS ----------
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  function fillSelect(id, options) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">--</option>' + options.map(o => `<option value="${o}">${o}</option>`).join('');
+  }
+  fillSelect('dial-sol', Array.from({length: 31}, (_, i) => i + 1));
+  fillSelect('dial-balanza', MESES);
+  fillSelect('dial-catalejo', [1808, 1809, 1810, 1811, 1812]);
+
+  const PISTAS_OBJETO = {
+    cuadro: { titulo: 'El cuadro de la Primera Junta', texto: 'Un óleo conmemora a los futuros integrantes del gobierno patrio. Bajo el marco, una inscripción apenas visible dice: "25 de Mayo, año del Señor 1810".' },
+    libro: { titulo: 'El libro de navegación', texto: 'Abierto en una página sobre las rutas del Río de la Plata, alguien subrayó con tinta fresca la palabra "Mayo" junto a una fecha: el día 25.' }
+  };
+
+  document.getElementById('hs-cuadro').addEventListener('click', () => {
+    document.getElementById('pista-titulo').textContent = PISTAS_OBJETO.cuadro.titulo;
+    document.getElementById('pista-texto').textContent = PISTAS_OBJETO.cuadro.texto;
+    openModal('modal-pista-objeto');
+  });
+  document.getElementById('hs-libro').addEventListener('click', () => {
+    document.getElementById('pista-titulo').textContent = PISTAS_OBJETO.libro.titulo;
+    document.getElementById('pista-texto').textContent = PISTAS_OBJETO.libro.texto;
+    openModal('modal-pista-objeto');
+  });
+
+  document.getElementById('hs-cofre').addEventListener('click', () => openModal('modal-cofre'));
+
+  document.getElementById('cofre-submit').addEventListener('click', () => {
+    const sol = document.getElementById('dial-sol').value;
+    const balanza = document.getElementById('dial-balanza').value;
+    const catalejo = document.getElementById('dial-catalejo').value;
+    const fb = document.getElementById('cofre-feedback');
+    if (sol === '25' && balanza === 'Mayo' && catalejo === '1810') {
+      fb.classList.add('ok');
+      fb.textContent = 'Los discos encastran con un chasquido. El cofre se abre.';
+      state.cofreSolved = true;
+      addItem('decreto', 'Decreto original', '📜');
+      setTimeout(() => { closeModal('modal-cofre'); triggerWin(); }, 1300);
+    } else {
+      fb.classList.remove('ok');
+      fb.textContent = 'Los discos no encastran. Revisá las pistas de la sala.';
     }
   });
 
-  // ================= NIVEL 3 =================
-  const relojTime = [12, 0]; // hora (1-12), minuto (0/15/30/45)
-  function renderRelojDials() {
-    const row = document.getElementById('reloj-dials');
-    row.innerHTML = '';
-    const labels = ['Hora', 'Minuto'];
-    relojTime.forEach((v, i) => {
-      const display = i === 0 ? v : String(v).padStart(2, '0');
-      const d = document.createElement('div');
-      d.className = 'dial';
-      d.innerHTML = `
-        <span class="lbl">${labels[i]}</span>
-        <button data-i="${i}" data-dir="1">▲</button>
-        <div class="val">${display}</div>
-        <button data-i="${i}" data-dir="-1">▼</button>
-      `;
-      row.appendChild(d);
-    });
-    row.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (state.relojSolved) return;
-        const i = parseInt(btn.dataset.i, 10);
-        const dir = parseInt(btn.dataset.dir, 10);
-        if (i === 0) {
-          let h = relojTime[0] + dir;
-          if (h < 1) h = 12; if (h > 12) h = 1;
-          relojTime[0] = h;
-        } else {
-          let m = relojTime[1] + dir * 15;
-          if (m < 0) m = 45; if (m > 45) m = 0;
-          relojTime[1] = m;
-        }
-        renderRelojDials();
-      });
-    });
+  function triggerWin() {
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('inventory-bar').style.display = 'none';
+    document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+    document.getElementById('win-screen').classList.add('active');
   }
-  renderRelojDials();
-  document.getElementById('hs-reloj').addEventListener('click', () => openModal('modal-reloj'));
-  document.getElementById('reloj-submit').addEventListener('click', () => {
-    if (state.relojSolved) return;
-    if (relojTime[0] === 9 && relojTime[1] === 0) {
-      state.relojSolved = true;
-      document.getElementById('reloj-msg').textContent = 'El péndulo se detiene un instante: la hora es correcta.';
-      checkLevelComplete();
-    } else {
-      document.getElementById('reloj-msg').textContent = 'Las manecillas no encajan con la hora del Cabildo.';
-    }
-  });
 
-  const cajaOptions = [69, 155, 200, 251];
-  function renderCaja() {
-    const el = document.getElementById('caja-options');
-    el.innerHTML = '';
-    cajaOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.style.display = 'inline-block';
-      b.style.width = '46%';
-      b.style.textAlign = 'center';
-      b.textContent = v;
-      b.disabled = state.cajaSolved;
-      b.addEventListener('click', () => {
-        if (state.cajaSolved) return;
-        if (v === 155) {
-          state.cajaSolved = true;
-          document.getElementById('caja-msg').textContent = 'El dial gira y la caja fuerte se abre.';
-          renderCaja();
-          checkLevelComplete();
-        } else {
-          document.getElementById('caja-msg').textContent = 'La caja no responde a ese número.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderCaja();
-  document.getElementById('hs-caja').addEventListener('click', () => openModal('modal-caja'));
-
-  document.getElementById('hs-proclama').addEventListener('click', () => {
-    const btn = document.getElementById('proclama-seal-btn');
-    if (hasItem('sello')) {
-      btn.disabled = false;
-      document.getElementById('proclama-text').textContent =
-        'Tenés el sello oficial. Es momento de sellar la proclama y escapar antes de que llegue la guardia.';
-    } else {
-      btn.disabled = true;
-      document.getElementById('proclama-text').textContent =
-        'El documento está listo sobre el escritorio, pero hace falta el sello oficial para darle validez.';
-    }
-    openModal('modal-proclama');
-  });
-  document.getElementById('proclama-seal-btn').addEventListener('click', () => {
-    if (!hasItem('sello')) return;
-    closeModal('modal-proclama');
-    showToast('La proclama está sellada. Ahora hay que imprimir la contrapropaganda antes del amanecer.');
-    setLevel(4);
-  });
-
-  // ================= NIVEL 4 =================
-  const tiposOptions = [
-    { label: 'El pueblo quiere saber de qué se trata.', correct: true },
-    { label: 'El pueblo exige justicia inmediata.', correct: false },
-    { label: 'El pueblo aclama al virrey Cisneros.', correct: false },
-    { label: 'El pueblo guarda silencio esta noche.', correct: false },
-  ];
-  function renderTipos() {
-    const el = document.getElementById('tipos-options');
-    el.innerHTML = '';
-    tiposOptions.forEach(opt => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = opt.label;
-      b.disabled = state.tiposSolved;
-      b.addEventListener('click', () => {
-        if (state.tiposSolved) return;
-        if (opt.correct) {
-          state.tiposSolved = true;
-          document.getElementById('tipos-msg').textContent = 'El componedor queda armado, letra por letra, en espejo.';
-          renderTipos();
-          checkLevelComplete();
-        } else {
-          document.getElementById('tipos-msg').textContent = 'Esa frase no es la que circulaba entre los patriotas.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderTipos();
-  document.getElementById('hs-tipos').addEventListener('click', () => openModal('modal-tipos'));
-
-  const tintaOptions = ['1 : 1', '2 : 3', '3 : 1', '4 : 1'];
-  function renderTinta() {
-    const el = document.getElementById('tinta-options');
-    el.innerHTML = '';
-    tintaOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.style.display = 'inline-block'; b.style.width = '46%'; b.style.textAlign = 'center';
-      b.textContent = v;
-      b.disabled = state.tintaSolved;
-      b.addEventListener('click', () => {
-        if (state.tintaSolved) return;
-        if (v === '3 : 1') {
-          state.tintaSolved = true;
-          document.getElementById('tinta-msg').textContent = 'La tinta queda con la viscosidad justa para agarrar en el papel.';
-          renderTinta();
-          checkLevelComplete();
-        } else {
-          document.getElementById('tinta-msg').textContent = 'La mezcla queda muy líquida o muy espesa. No es esa proporción.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderTinta();
-  document.getElementById('hs-tinta').addEventListener('click', () => openModal('modal-tinta'));
-
-  const prensaOptions = [
-    '2 vueltas en cada tornillo',
-    '4 vueltas en uno, 1 en el otro',
-    '3 vueltas en cada tornillo, por igual',
-    '5 vueltas en un solo tornillo',
-  ];
-  function renderPrensa() {
-    const el = document.getElementById('prensa-options');
-    el.innerHTML = '';
-    prensaOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.prensaSolved;
-      b.addEventListener('click', () => {
-        if (state.prensaSolved) return;
-        if (v === '3 vueltas en cada tornillo, por igual') {
-          state.prensaSolved = true;
-          document.getElementById('prensa-msg').textContent = 'La presión queda pareja: la copia sale legible y la prensa no se rompe.';
-          renderPrensa();
-          checkLevelComplete();
-        } else {
-          document.getElementById('prensa-msg').textContent = 'La presión queda dispareja. Algo va a romperse o va a salir ilegible.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderPrensa();
-  document.getElementById('hs-prensa').addEventListener('click', () => openModal('modal-prensa'));
-
-  // ================= NIVEL 5 =================
-  const cifradoOptions = ['1 - 23 - 100', '23 - 91 - 150', '150 - 91 - 23', '90 - 12 - 3'];
-  function renderCifrado() {
-    const el = document.getElementById('cifrado-options');
-    el.innerHTML = '';
-    cifradoOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.cifradoSolved;
-      b.addEventListener('click', () => {
-        if (state.cifradoSolved) return;
-        if (v === '23 - 91 - 150') {
-          state.cifradoSolved = true;
-          document.getElementById('cifrado-msg').textContent = 'Los diales encajan en su lugar: el cerrojo se abre.';
-          renderCifrado();
-          checkLevelComplete();
-        } else {
-          document.getElementById('cifrado-msg').textContent = 'El cerrojo no cede. Ese no es el orden de los Salmos.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderCifrado();
-  document.getElementById('hs-cifrado').addEventListener('click', () => openModal('modal-cifrado'));
-
-  const pesoOptions = [450, 495, 500, 540];
-  function renderPeso() {
-    const el = document.getElementById('peso-options');
-    el.innerHTML = '';
-    pesoOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.style.display = 'inline-block'; b.style.width = '46%'; b.style.textAlign = 'center';
-      b.textContent = v + ' libras';
-      b.disabled = state.pesoSolved;
-      b.addEventListener('click', () => {
-        if (state.pesoSolved) return;
-        if (v === 495) {
-          state.pesoSolved = true;
-          document.getElementById('peso-msg').textContent = 'La balanza auxiliar se equilibra: el contrapeso libera la puerta.';
-          renderPeso();
-          checkLevelComplete();
-        } else {
-          document.getElementById('peso-msg').textContent = 'La balanza sigue inclinada. Revisá la cuenta de los pesos.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderPeso();
-  document.getElementById('hs-peso').addEventListener('click', () => openModal('modal-peso'));
-
-  const campanarioOptions = ['Nudo de ocho', 'Nudo llano', 'As de guía', 'Nudo de ballestrinque'];
-  function renderCampanario() {
-    const el = document.getElementById('campanario-options');
-    el.innerHTML = '';
-    campanarioOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.campanarioSolved;
-      b.addEventListener('click', () => {
-        if (state.campanarioSolved) return;
-        if (v === 'Nudo de ballestrinque') {
-          state.campanarioSolved = true;
-          document.getElementById('campanario-msg').textContent = 'El nudo sostiene firme: los badajos quedan conectados a los pedales.';
-          renderCampanario();
-          checkLevelComplete();
-        } else {
-          document.getElementById('campanario-msg').textContent = 'Ese nudo se afloja con el repique. No es el correcto.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderCampanario();
-  document.getElementById('hs-campanario').addEventListener('click', () => openModal('modal-campanario'));
-
-  // ================= NIVEL 6 =================
-  const banderasOptions = [
-    'Bandera azul-amarilla: mantener posición',
-    'Bandera roja-blanca: relevo de guardia',
-    'Bandera verde-negra: alerta general',
-    'Bandera blanca-azul: avanzar',
-  ];
-  function renderBanderas() {
-    const el = document.getElementById('banderas-options');
-    el.innerHTML = '';
-    banderasOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.banderasSolved;
-      b.addEventListener('click', () => {
-        if (state.banderasSolved) return;
-        if (v === 'Bandera roja-blanca: relevo de guardia') {
-          state.banderasSolved = true;
-          document.getElementById('banderas-msg').textContent = 'Los guardias reciben la orden y se retiran un momento.';
-          renderBanderas();
-          checkLevelComplete();
-        } else {
-          document.getElementById('banderas-msg').textContent = 'Los guardias no se mueven. Ese no es el mensaje correcto.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderBanderas();
-  document.getElementById('hs-banderas').addEventListener('click', () => openModal('modal-banderas'));
-
-  const cerrojoMilitarOptions = [
-    'Capitán → Coronel → General',
-    'General → Coronel → Capitán',
-    'Coronel → General → Capitán',
-    'Capitán → General → Coronel',
-  ];
-  function renderCerrojoMilitar() {
-    const el = document.getElementById('cerrojo-militar-options');
-    el.innerHTML = '';
-    cerrojoMilitarOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.cerrojoMilitarSolved;
-      b.addEventListener('click', () => {
-        if (state.cerrojoMilitarSolved) return;
-        if (v === 'General → Coronel → Capitán') {
-          state.cerrojoMilitarSolved = true;
-          document.getElementById('cerrojo-militar-msg').textContent = 'Los símbolos encajan según la cadena de mando. El cerrojo cede.';
-          renderCerrojoMilitar();
-          checkLevelComplete();
-        } else {
-          document.getElementById('cerrojo-militar-msg').textContent = 'El cerrojo no gira. Ese no es el orden de mando.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderCerrojoMilitar();
-  document.getElementById('hs-cerrojo-militar').addEventListener('click', () => openModal('modal-cerrojo-militar'));
-
-  let balconInterval = null;
-  let balconState = 'grita';
-  function balconTick() {
-    balconState = Math.random() < 0.32 ? 'silencio' : 'grita';
-    document.getElementById('balcon-estado').textContent =
-      balconState === 'silencio' ? 'Silencio...' : 'La multitud grita y espera.';
-  }
-  document.getElementById('hs-balcon').addEventListener('click', () => {
-    openModal('modal-balcon');
-    if (!state.balconSolved) {
-      balconTick();
-      balconInterval = setInterval(balconTick, 1100);
-    } else {
-      document.getElementById('balcon-estado').textContent = 'El Acta ya fue presentada ante el pueblo.';
-    }
-  });
-  document.querySelector('[data-close="modal-balcon"]').addEventListener('click', () => {
-    if (balconInterval) { clearInterval(balconInterval); balconInterval = null; }
-  });
-  document.getElementById('balcon-presentar-btn').addEventListener('click', () => {
-    if (state.balconSolved) return;
-    if (balconState === 'silencio') {
-      state.balconSolved = true;
-      if (balconInterval) { clearInterval(balconInterval); balconInterval = null; }
-      document.getElementById('balcon-estado').textContent = 'El Acta ya fue presentada ante el pueblo.';
-      document.getElementById('balcon-msg').textContent = '¡La plaza aclama la noticia! El pueblo apoya a la Junta.';
-      checkLevelComplete();
-    } else {
-      document.getElementById('balcon-msg').textContent = 'La multitud sigue gritando. Esperá el silencio.';
-    }
-  });
-
-  // ================= EPÍLOGO (Nivel 7) =================
-  document.getElementById('hs-verificar').addEventListener('click', () => openModal('modal-verificar'));
-  document.getElementById('verificar-luz-btn').addEventListener('click', () => {
-    if (state.verificadoSolved) return;
-    state.verificadoSolved = true;
-    document.getElementById('verificar-msg').textContent =
-      'A contraluz aparece el Sol de Mayo en la marca de agua: el Acta es auténtica.';
-    document.getElementById('verificar-sello-btn').disabled = false;
-  });
-  document.getElementById('verificar-sello-btn').addEventListener('click', () => {
-    if (!state.verificadoSolved) return;
-    closeModal('modal-verificar');
-    showToast('El Acta quedó consagrada. Todavía queda asegurar el Fuerte de la resistencia realista.');
-    setLevel(8);
-  });
-
-  // ================= NIVEL 8 =================
-  const bateriasOptions = ['3 - 1 - 4 - 2', '1 - 2 - 3 - 4', '4 - 3 - 2 - 1', '2 - 4 - 1 - 3'];
-  function renderBaterias() {
-    const el = document.getElementById('baterias-options');
-    el.innerHTML = '';
-    bateriasOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.bateriasSolved;
-      b.addEventListener('click', () => {
-        if (state.bateriasSolved) return;
-        if (v === '3 - 1 - 4 - 2') {
-          state.bateriasSolved = true;
-          addItem('codigoBaterias', 'Código de baterías', '💣');
-          document.getElementById('baterias-msg').textContent = 'Las mechas se retiran sin encender los cañones.';
-          renderBaterias();
-          checkLevelComplete();
-        } else {
-          document.getElementById('baterias-msg').textContent = 'Esa secuencia enciende una mecha. Probá otra vez.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderBaterias();
-  document.getElementById('hs-baterias').addEventListener('click', () => openModal('modal-baterias'));
-
-  const polvorinTime = [5, 30];
-  function renderPolvorinDials() {
-    const row = document.getElementById('polvorin-dials');
-    row.innerHTML = '';
-    const labels = ['Hora', 'Minuto'];
-    polvorinTime.forEach((v, i) => {
-      const display = i === 0 ? String(v).padStart(2, '0') : String(v).padStart(2, '0');
-      const d = document.createElement('div');
-      d.className = 'dial';
-      d.innerHTML = `
-        <span class="lbl">${labels[i]}</span>
-        <button data-i="${i}" data-dir="1">▲</button>
-        <div class="val">${display}</div>
-        <button data-i="${i}" data-dir="-1">▼</button>
-      `;
-      row.appendChild(d);
-    });
-    row.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (state.polvorinSolved) return;
-        const i = parseInt(btn.dataset.i, 10);
-        const dir = parseInt(btn.dataset.dir, 10);
-        if (i === 0) {
-          let h = polvorinTime[0] + dir;
-          if (h < 0) h = 12; if (h > 12) h = 0;
-          polvorinTime[0] = h;
-        } else {
-          let m = polvorinTime[1] + dir;
-          if (m < 0) m = 59; if (m > 59) m = 0;
-          polvorinTime[1] = m;
-        }
-        renderPolvorinDials();
-      });
-    });
-  }
-  renderPolvorinDials();
-  document.getElementById('hs-polvorin').addEventListener('click', () => openModal('modal-polvorin'));
-  document.getElementById('polvorin-submit').addEventListener('click', () => {
-    if (state.polvorinSolved) return;
-    if (polvorinTime[0] === 5 && polvorinTime[1] === 34) {
-      state.polvorinSolved = true;
-      document.getElementById('polvorin-msg').textContent = 'La esclusa se abre justo a tiempo: el polvorín queda inundado.';
-      checkLevelComplete();
-    } else {
-      document.getElementById('polvorin-msg').textContent = 'El reloj no coincide con el "Clock word". Ajustá de nuevo.';
-    }
-  });
-
-  const banderaOptions = [
-    'Nudo llano con tensión floja',
-    'As de guía con tensión fuerte',
-    'Ballestrinque doble con tensión media',
-    'Nudo de ocho sin tensión',
-  ];
-  function renderBandera() {
-    const el = document.getElementById('bandera-options');
-    el.innerHTML = '';
-    banderaOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.banderaBajadaSolved;
-      b.addEventListener('click', () => {
-        if (state.banderaBajadaSolved) return;
-        if (v === 'Ballestrinque doble con tensión media') {
-          state.banderaBajadaSolved = true;
-          document.getElementById('bandera-msg').textContent = 'La polea cede: la bandera española baja y la escarapela sube en su lugar.';
-          renderBandera();
-          checkLevelComplete();
-        } else {
-          document.getElementById('bandera-msg').textContent = 'La polea oxidada no responde a ese ajuste.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderBandera();
-  document.getElementById('hs-bandera').addEventListener('click', () => openModal('modal-bandera'));
-
-  // ================= NIVEL 9 =================
-  const manifiestoOptions = [
-    'Está vacía',
-    'Contiene mosquetes ocultos',
-    'Está mojada por la lluvia',
-    'El manifiesto tiene razón',
-  ];
-  function renderManifiesto() {
-    const el = document.getElementById('manifiesto-options');
-    el.innerHTML = '';
-    manifiestoOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.manifiestoSolved;
-      b.addEventListener('click', () => {
-        if (state.manifiestoSolved) return;
-        if (v === 'Contiene mosquetes ocultos') {
-          state.manifiestoSolved = true;
-          document.getElementById('manifiesto-msg').textContent = 'El peso de más solo se explica por armas escondidas bajo la paja.';
-          renderManifiesto();
-          checkLevelComplete();
-        } else {
-          document.getElementById('manifiesto-msg').textContent = 'Esa explicación no cierra con la diferencia de peso.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderManifiesto();
-  document.getElementById('hs-manifiesto').addEventListener('click', () => openModal('modal-manifiesto'));
-
-  const gruaOptions = ['Presión alta, engranaje rápido', 'Presión baja, engranaje lento', 'Presión media, engranaje medio', 'Presión alta, sin engranaje'];
-  function renderGrua() {
-    const el = document.getElementById('grua-options');
-    el.innerHTML = '';
-    gruaOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.gruaSolved;
-      b.addEventListener('click', () => {
-        if (state.gruaSolved) return;
-        if (v === 'Presión media, engranaje medio') {
-          state.gruaSolved = true;
-          document.getElementById('grua-msg').textContent = 'La grúa levanta la caja con suavidad y la deja en el muelle.';
-          renderGrua();
-          checkLevelComplete();
-        } else {
-          document.getElementById('grua-msg').textContent = 'El guinche cruje. Esa combinación es demasiado brusca o insuficiente.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderGrua();
-  document.getElementById('hs-grua').addEventListener('click', () => openModal('modal-grua'));
-
-  const mosaicoOptions = ['Centro → borde → centro', 'Sol → rayos → borde', 'Borde → rayos → sol', 'Rayos → centro → borde'];
-  function renderMosaico() {
-    const el = document.getElementById('mosaico-options');
-    el.innerHTML = '';
-    mosaicoOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.mosaicoSolved;
-      b.addEventListener('click', () => {
-        if (state.mosaicoSolved) return;
-        if (v === 'Sol → rayos → borde') {
-          state.mosaicoSolved = true;
-          document.getElementById('mosaico-msg').textContent = 'Las baldosas se hunden en orden: el depósito fiscal se abre.';
-          renderMosaico();
-          checkLevelComplete();
-        } else {
-          document.getElementById('mosaico-msg').textContent = 'Las baldosas no ceden. Ese orden no es correcto.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderMosaico();
-  document.getElementById('hs-mosaico').addEventListener('click', () => openModal('modal-mosaico'));
-
-  // ================= NIVEL 10 =================
-  const decretoOptions = [
-    'Liniers marcha hacia Córdoba con refuerzos realistas.',
-    'Liniers se rinde y abandona el interior.',
-    'Liniers negocia en secreto con Saavedra.',
-    'Liniers ya fue capturado en Montevideo.',
-  ];
-  function renderDecreto() {
-    const el = document.getElementById('decreto-options');
-    el.innerHTML = '';
-    decretoOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.decretoSolved;
-      b.addEventListener('click', () => {
-        if (state.decretoSolved) return;
-        if (v === 'Liniers marcha hacia Córdoba con refuerzos realistas.') {
-          state.decretoSolved = true;
-          document.getElementById('decreto-msg').textContent = 'Los cilindros encajan: el mensaje confirma el movimiento de tropas.';
-          renderDecreto();
-          checkLevelComplete();
-        } else {
-          document.getElementById('decreto-msg').textContent = 'Los cilindros no alinean un mensaje coherente con esa lectura.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderDecreto();
-  document.getElementById('hs-decreto').addEventListener('click', () => openModal('modal-decreto'));
-
-  const archivoOptions = ['6 de julio', '9 de julio', '15 de julio', '22 de julio'];
-  function renderArchivo() {
-    const el = document.getElementById('archivo-options');
-    el.innerHTML = '';
-    archivoOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.style.display = 'inline-block'; b.style.width = '46%'; b.style.textAlign = 'center';
-      b.textContent = v;
-      b.disabled = state.archivoSolved;
-      b.addEventListener('click', () => {
-        if (state.archivoSolved) return;
-        if (v === '6 de julio') {
-          state.archivoSolved = true;
-          document.getElementById('archivo-msg').textContent = 'Los diales encajan: el cofre se abre.';
-          renderArchivo();
-          checkLevelComplete();
-        } else {
-          document.getElementById('archivo-msg').textContent = 'El cofre no cede con esa fecha.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderArchivo();
-  document.getElementById('hs-archivo').addEventListener('click', () => openModal('modal-archivo'));
-
-  const balanzaInfluenciasOptions = [
-    'Clero 40 - Milicias 20 - Hacendados 40',
-    'Clero 30 - Milicias 40 - Hacendados 30',
-    'Clero 50 - Milicias 10 - Hacendados 40',
-    'Clero 20 - Milicias 60 - Hacendados 20',
-  ];
-  function renderBalanzaInfluencias() {
-    const el = document.getElementById('balanza-influencias-options');
-    el.innerHTML = '';
-    balanzaInfluenciasOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.balanzaInfluenciasSolved;
-      b.addEventListener('click', () => {
-        if (state.balanzaInfluenciasSolved) return;
-        if (v === 'Clero 30 - Milicias 40 - Hacendados 30') {
-          state.balanzaInfluenciasSolved = true;
-          document.getElementById('balanza-influencias-msg').textContent = 'La balanza queda nivelada: el equilibrio de poder se mantiene.';
-          renderBalanzaInfluencias();
-          checkLevelComplete();
-        } else {
-          document.getElementById('balanza-influencias-msg').textContent = 'Un sector queda con demasiado peso. El pacto se rompería.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderBalanzaInfluencias();
-  document.getElementById('hs-balanza-influencias').addEventListener('click', () => openModal('modal-balanza-influencias'));
-
-  // ================= NIVEL 11 =================
-  const empaquetadoOptions = [
-    'Todo el peso adelante',
-    'Peso parejo entre los dos ejes',
-    'Todo el peso atrás',
-    'Todo en el eje trasero, nada en el delantero',
-  ];
-  function renderEmpaquetado() {
-    const el = document.getElementById('empaquetado-options');
-    el.innerHTML = '';
-    empaquetadoOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.empaquetadoSolved;
-      b.addEventListener('click', () => {
-        if (state.empaquetadoSolved) return;
-        if (v === 'Peso parejo entre los dos ejes') {
-          state.empaquetadoSolved = true;
-          document.getElementById('empaquetado-msg').textContent = 'La carreta queda estable, lista para el camino de tierra.';
-          renderEmpaquetado();
-          checkLevelComplete();
-        } else {
-          document.getElementById('empaquetado-msg').textContent = 'Con ese reparto, la carreta volcaría en el barro.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderEmpaquetado();
-  document.getElementById('hs-empaquetado').addEventListener('click', () => openModal('modal-empaquetado'));
-
-  const cifradoPostaOptions = [
-    'Ruta por la costa hasta Montevideo',
-    'Ruta del Camino Real hasta Córdoba y el Alto Perú',
-    'Ruta directa hacia Chile por la cordillera',
-    'Ruta fluvial por el Paraná',
-  ];
-  function renderCifradoPosta() {
-    const el = document.getElementById('cifrado-posta-options');
-    el.innerHTML = '';
-    cifradoPostaOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.cifradoPostaSolved;
-      b.addEventListener('click', () => {
-        if (state.cifradoPostaSolved) return;
-        if (v === 'Ruta del Camino Real hasta Córdoba y el Alto Perú') {
-          state.cifradoPostaSolved = true;
-          document.getElementById('cifrado-posta-msg').textContent = 'La plantilla revela la ruta oculta entre las líneas de la carta comercial.';
-          renderCifradoPosta();
-          checkLevelComplete();
-        } else {
-          document.getElementById('cifrado-posta-msg').textContent = 'Esa lectura no coincide con los agujeros de la plantilla.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderCifradoPosta();
-  document.getElementById('hs-cifrado-posta').addEventListener('click', () => openModal('modal-cifrado-posta'));
-
-  const engancheOptions = ['Nudo de ocho', 'Nudo llano doble', 'Ballestrinque doble', 'As de guía corredizo'];
-  function renderEnganche() {
-    const el = document.getElementById('enganche-options');
-    el.innerHTML = '';
-    engancheOptions.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'action';
-      b.textContent = v;
-      b.disabled = state.engancheSolved;
-      b.addEventListener('click', () => {
-        if (state.engancheSolved) return;
-        if (v === 'Ballestrinque doble') {
-          state.engancheSolved = true;
-          document.getElementById('enganche-msg').textContent = 'El enganche queda firme, listo para tirar de la carreta cargada.';
-          renderEnganche();
-          checkLevelComplete();
-        } else {
-          document.getElementById('enganche-msg').textContent = 'Ese nudo se afloja con el traqueteo del camino.';
-        }
-      });
-      el.appendChild(b);
-    });
-  }
-  renderEnganche();
-  document.getElementById('hs-enganche').addEventListener('click', () => openModal('modal-enganche'));
-
-  // ---------- Pistas contextuales ----------
+  // ---------- HINT ----------
   document.getElementById('hint-btn').addEventListener('click', () => {
     let text;
-    if (state.level === 1) {
-      if (!state.cipherSolved) text = 'Un mensaje cifrado no siempre esconde algo complicado. Probá leerlo como si cada número fuera una letra.';
-      else if (!state.jarsSolved) text = 'El orden de los frascos importa: de más liviano a más pesado.';
-      else text = 'Ya tenés el mapa. Continuá hacia el Cabildo.';
-    } else if (state.level === 2) {
-      if (!state.balanzaSolved) text = 'La diferencia entre 600 y 450 te va a decir cuánto falta para equilibrar.';
-      else if (!state.fechasSolved) text = 'La Reconquista de Buenos Aires fue en 1806. La Defensa, al año siguiente.';
-      else text = 'Ya tenés la lista de la Junta. Continuá hacia el despacho del Virrey.';
-    } else if (state.level === 3) {
-      if (!state.relojSolved) text = 'El Cabildo Abierto del 22 de mayo comenzó por la mañana, a las nueve en punto.';
-      else if (!state.cajaSolved) text = 'La pizarra en la pared tiene los votos anotados. Sumá la columna de los criollos.';
-      else text = 'Ya tenés el sello. Andá hasta la proclama sobre el escritorio y sellala.';
-    } else if (state.level === 4) {
-      if (!state.tiposSolved) text = 'Es la frase que se repitió en la Plaza el 22 de mayo, exigiendo saber qué pasaba con el virrey.';
-      else if (!state.tintaSolved) text = 'El manual habla de más aceite que negro de humo — bastante más.';
-      else if (!state.prensaSolved) text = 'La fuerza pareja en los dos tornillos es lo que evita romper la prensa.';
-      else text = 'La proclama falsa está lista. Continuá hacia la Catedral.';
-    } else if (state.level === 5) {
-      if (!state.cifradoSolved) text = 'Los Salmos se leyeron de menor a mayor número esa mañana.';
-      else if (!state.pesoSolved) text = 'Nueve pesos iguales más uno que pesa el doble: sumalos todos.';
-      else if (!state.campanarioSolved) text = 'Es el nudo preferido de los marineros para tensar sin que se corra.';
-      else text = 'Las campanas están listas para repicar.';
-    } else if (state.level === 6) {
-      if (!state.banderasSolved) text = 'Rojo y blanco no significa ataque — pensá en qué orden se da un relevo.';
-      else if (!state.cerrojoMilitarSolved) text = 'El general manda sobre el coronel, y el coronel sobre el capitán.';
-      else if (!state.balconSolved) text = 'No presentes el Acta mientras la multitud grita. Esperá el silencio exacto.';
-      else text = 'El Acta fue aclamada. Continuá hacia el Cabildo.';
-    } else if (state.level === 7) {
-      if (!state.verificadoSolved) text = 'La marca de agua solo se ve a contraluz. Acercá el documento a la lámpara.';
-      else text = 'Ya verificaste el Acta. Solo falta colocar el sello final.';
-    } else if (state.level === 8) {
-      if (!state.bateriasSolved) text = 'La clave VIGENCIA desplaza las letras del mensaje. Empezá por ahí.';
-      else if (!state.polvorinSolved) text = 'El "Clock word" marca 05:34 — ajustá los diales para que coincidan exacto.';
-      else if (!state.banderaBajadaSolved) text = 'El ballestrinque doble aguanta mejor que cualquier nudo simple, con tensión media.';
-      else text = 'El Fuerte está asegurado. Continuá hacia la Aduana.';
-    } else if (state.level === 9) {
-      if (!state.manifiestoSolved) text = 'Una caja de "Textiles" no debería pesar lo mismo que una de "Herramientas".';
-      else if (!state.gruaSolved) text = 'Ni muy brusco ni muy suave: el punto medio es el que no rompe nada.';
-      else if (!state.mosaicoSolved) text = 'Empezá por el sol en el centro del mosaico y seguí hacia afuera.';
-      else text = 'Las armas quedaron confiscadas. La Revolución está a salvo.';
-    } else if (state.level === 10) {
-      if (!state.decretoSolved) text = 'Liniers sigue siendo una amenaza desde el interior. Pensá en un movimiento de tropas, no en una rendición.';
-      else if (!state.archivoSolved) text = 'Las reuniones clave de julio empezaron temprano en el mes.';
-      else if (!state.balanzaInfluenciasSolved) text = 'Las milicias necesitan más peso que el clero o los hacendados por separado, pero sin desequilibrar todo.';
-      else text = 'Los despachos están asegurados. Continuá hacia el Camino Real.';
+    if (state.scene === 1) {
+      text = state.cartaSolved
+        ? 'Ya descifraste la carta. Dirigite a la puerta trasera.'
+        : 'El pulpero mencionó dos veces que los ingleses intentaron quedarse con Buenos Aires (1806 y 1807). El mensaje habla de un lugar de encuentro.';
+    } else if (state.scene === 2) {
+      text = 'A cada personaje conviene responderle con una postura patriota moderada: ni radical ni realista. Escuchá bien la pregunta antes de elegir.';
     } else {
-      if (!state.empaquetadoSolved) text = 'Un peso parejo entre los dos ejes es lo que evita que la carreta vuelque.';
-      else if (!state.cifradoPostaSolved) text = 'La expedición va hacia el Alto Perú — la ruta oculta tiene que apuntar para ese lado.';
-      else if (!state.engancheSolved) text = 'El mismo nudo que sirvió para las campanas y la bandera vuelve a servir acá.';
-      else text = 'La expedición está lista para partir hacia el Norte.';
+      text = state.cofreSolved
+        ? 'El decreto ya está en tus manos.'
+        : 'Revisá el cuadro de la Primera Junta y el libro de navegación: ambos mencionan la misma fecha clave para alinear los discos.';
     }
     document.getElementById('hint-text').textContent = text;
     openModal('modal-hint');
   });
 
-  document.getElementById('restart-btn').addEventListener('click', () => location.reload());
+  // ---------- PWA install ----------
+  let deferredPrompt = null;
+  const installBanner = document.getElementById('install-banner');
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBanner.style.display = 'block';
+  });
+  document.getElementById('install-btn').addEventListener('click', async () => {
+    installBanner.style.display = 'none';
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    }
+  });
+  document.getElementById('install-dismiss').addEventListener('click', () => {
+    installBanner.style.display = 'none';
+  });
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (isIOS && !isInStandalone) {
+    setTimeout(() => {
+      installBanner.innerHTML = 'Para instalar: tocá <strong>Compartir</strong> y luego <strong>"Agregar a inicio"</strong>.';
+      installBanner.style.display = 'block';
+    }, 2500);
+  }
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     });
   }
 })();

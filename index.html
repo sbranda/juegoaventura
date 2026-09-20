@@ -19,6 +19,8 @@
     --amber: #e8a23a;
     --amber-dim: #7a5a20;
     --line: #2a2d34;
+    --danger: #c9756f;
+    --ok: #5ec97b;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -39,16 +41,30 @@
 
   #hud {
     position: fixed; top: 0; left: 0; right: 0; z-index: 10;
-    display: flex; justify-content: space-between; align-items: flex-start;
-    padding: 16px; padding-top: max(16px, env(safe-area-inset-top, 0px));
+    padding: 12px; padding-top: max(12px, env(safe-area-inset-top, 0px));
     pointer-events: none;
   }
-  #title-tag {
+  #objective-box {
     background: rgba(21,23,28,0.82); border: 1px solid var(--line);
-    border-radius: 8px; padding: 8px 14px; font-size: 12.5px; color: var(--muted);
-    letter-spacing: 0.3px;
+    border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: var(--muted);
+    max-width: 420px;
   }
-  #title-tag b { color: var(--amber); font-weight: 600; }
+  #objective-box .label {
+    color: var(--amber); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  #objective-text { color: var(--ink); line-height: 1.4; }
+  #inventory-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .inv-chip {
+    display: flex; align-items: center; gap: 5px;
+    border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px;
+    font-size: 11.5px; color: var(--muted);
+  }
+  .inv-chip.got { color: var(--ok); border-color: var(--ok); }
+  .inv-chip .dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--line);
+  }
+  .inv-chip.got .dot { background: var(--ok); }
 
   #overlay {
     position: fixed; inset: 0; z-index: 20;
@@ -72,13 +88,13 @@
     border: 1px solid var(--line); background: var(--panel); border-radius: 6px;
     padding: 6px 10px; font-size: 12px; color: var(--ink); font-family: ui-monospace, 'SF Mono', Consolas, monospace;
   }
-  #start-btn {
+  #start-btn, .btn {
     font-family: inherit; font-size: 15px; padding: 12px 28px; border-radius: 6px;
     border: 1px solid var(--amber-dim); cursor: pointer;
     background: linear-gradient(180deg, #a97a2e, var(--amber-dim)); color: #1a1000;
     font-weight: 600;
   }
-  #start-btn:active { transform: translateY(1px); }
+  #start-btn:active, .btn:active { transform: translateY(1px); }
   #start-btn:disabled { opacity: 0.5; cursor: default; }
 
   #note {
@@ -87,6 +103,16 @@
     text-align: center; font-size: 12px; color: var(--muted); pointer-events: none;
     background: linear-gradient(transparent, rgba(12,13,16,0.7));
   }
+
+  #interact-prompt {
+    position: fixed; left: 50%; bottom: 76px; transform: translateX(-50%);
+    z-index: 15; display: none;
+    font-family: inherit; font-size: 13.5px; padding: 10px 18px; border-radius: 20px;
+    border: 1px solid var(--amber); background: rgba(21,23,28,0.9); color: var(--ink);
+    cursor: pointer;
+  }
+  #interact-prompt.visible { display: block; }
+  #interact-prompt b { color: var(--amber); }
 
   #touch-controls { display: none; }
   #touch-controls.active { display: block; }
@@ -110,6 +136,18 @@
     width: 52px; height: 52px; border-radius: 50%;
     background: rgba(233,230,223,0.28); border: 1px solid rgba(233,230,223,0.5);
   }
+
+  #end-screen {
+    position: fixed; inset: 0; z-index: 30; display: none;
+    background: rgba(6,4,2,0.94);
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 30px;
+  }
+  #end-screen.active { display: flex; }
+  #end-screen h2 { font-size: clamp(22px, 6vw, 30px); margin: 0 0 10px; }
+  #end-screen h2.lose { color: var(--danger); }
+  #end-screen h2.win { color: var(--ok); }
+  #end-screen p { max-width: 480px; color: var(--muted); font-size: 14.5px; line-height: 1.6; margin: 0 0 22px; }
 
   #install-banner {
     display: none; position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
@@ -135,8 +173,17 @@
 <div id="crosshair" hidden></div>
 
 <div id="hud" hidden>
-  <div id="title-tag">Depósito 3D — <b>demo WebGL</b></div>
+  <div id="objective-box">
+    <div class="label">Objetivo</div>
+    <div id="objective-text">Recolectá la tarjeta de acceso y la cizalla, evitando la luz de los guardias, y escapá por la puerta al final del depósito.</div>
+    <div id="inventory-row">
+      <span class="inv-chip" id="inv-tarjeta"><span class="dot"></span>Tarjeta de acceso</span>
+      <span class="inv-chip" id="inv-cizalla"><span class="dot"></span>Cizalla</span>
+    </div>
+  </div>
 </div>
+
+<button id="interact-prompt"></button>
 
 <div id="note" hidden>WASD para moverte · mouse para mirar · Esc para soltar el cursor</div>
 
@@ -147,14 +194,20 @@
   </div>
 </div>
 
+<div id="end-screen">
+  <h2 id="end-title">Título</h2>
+  <p id="end-text">Texto.</p>
+  <button class="btn" id="end-restart">Reintentar</button>
+</div>
+
 <div id="overlay">
   <div id="overlay-box">
     <h1>Depósito 3D</h1>
-    <p>Un pasillo real en tres dimensiones — geometría, luces e iluminación dinámica — para comparar contra el motor de raycasting 2D de tus juegos. No es un juego completo, solo el mismo tipo de escena con gráficos distintos.</p>
+    <p>Un depósito custodiado, en 3D real. Recolectá la tarjeta de acceso y la cizalla sin que te vean los guardias con linterna, y escapá por la puerta del fondo.</p>
     <div class="controls" id="controls-hint">
       <span class="key">W A S D</span>
       <span class="key">mouse: mirar</span>
-      <span class="key">Esc: salir</span>
+      <span class="key">E: recoger</span>
     </div>
     <button id="start-btn">Entrar al depósito</button>
     <p id="load-error" style="display:none; color:#e08a8a; font-size:13px; margin-top:16px;"></p>
@@ -171,6 +224,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script>
 (function () {
   const startBtn = document.getElementById('start-btn');
@@ -201,25 +255,30 @@
   }
 
   try {
-    runDemo();
+    runGame();
   } catch (err) {
     showFatal('Ocurrió un error iniciando la escena 3D: ' + (err && err.message ? err.message : err));
   }
 
-  function runDemo() {
+  function runGame() {
   const wrap = document.getElementById('canvas-wrap');
   const overlay = document.getElementById('overlay');
   const crosshair = document.getElementById('crosshair');
   const hud = document.getElementById('hud');
   const note = document.getElementById('note');
+  const endScreen = document.getElementById('end-screen');
+  const endTitle = document.getElementById('end-title');
+  const endText = document.getElementById('end-text');
+  const interactPrompt = document.getElementById('interact-prompt');
+
+  const state = { hasTarjeta: false, hasCizalla: false, gameOver: false, won: false };
 
   // ---------- Scene setup ----------
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0a0a0c);
-  scene.fog = new THREE.FogExp2(0x0a0a0c, 0.045);
+  scene.fog = new THREE.FogExp2(0x0a0a0c, 0.038);
 
   const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.set(0, 1.6, 6);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -234,7 +293,8 @@
   });
 
   // ---------- Room ----------
-  const ROOM_W = 10, ROOM_D = 22, ROOM_H = 4;
+  const ROOM_W = 10, ROOM_D = 36, ROOM_H = 4;
+  const START_POS = new THREE.Vector3(0, 1.6, 14);
 
   const floorMat = new THREE.MeshStandardMaterial({ color: 0x3a3226, roughness: 0.95 });
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W, ROOM_D), floorMat);
@@ -260,19 +320,27 @@
   makeWall(ROOM_D, ROOM_H, ROOM_W / 2, ROOM_H / 2, 0, -Math.PI / 2);
   makeWall(ROOM_W, ROOM_H, 0, ROOM_H / 2, -ROOM_D / 2, 0);
 
-  // exit door glow at the far end
-  const doorMat = new THREE.MeshStandardMaterial({ color: 0xe8a23a, emissive: 0xe8a23a, emissiveIntensity: 0.6 });
+  // exit door at the far end (locked until both items are collected)
+  const doorMat = new THREE.MeshStandardMaterial({ color: 0xe8a23a, emissive: 0xe8a23a, emissiveIntensity: 0.4 });
   const door = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.6), doorMat);
   door.position.set(0, 1.3, ROOM_D / 2 - 0.05);
   door.rotation.y = Math.PI;
   scene.add(door);
 
-  // crates scattered like the warehouse theme
+  function allItemsCollected() { return state.hasTarjeta && state.hasCizalla; }
+  function updateDoorVisual() {
+    const unlocked = allItemsCollected();
+    doorMat.color.set(unlocked ? 0x5ec97b : 0xe8a23a);
+    doorMat.emissive.set(unlocked ? 0x5ec97b : 0xe8a23a);
+    doorMat.emissiveIntensity = unlocked ? 1.1 : 0.4;
+  }
+
+  // crates: obstacles and cover from the guards' flashlights
   const crateMat = new THREE.MeshStandardMaterial({ color: 0x6b4f24, roughness: 0.8 });
   const crates = [];
   const cratePositions = [
-    [-3, 0.5, -2], [-3.2, 1.5, -2], [3, 0.5, -5], [-2.5, 0.5, -9],
-    [2.8, 0.5, -12], [-3.5, 0.5, -15], [0.5, 0.5, -17]
+    [-3, 0.5, -1], [-3.2, 1.5, -1], [3, 0.5, -5], [-2.5, 0.5, -8],
+    [2.8, 0.5, -11], [-3.3, 0.5, -14], [1.5, 0.5, -16], [3, 0.5, 8], [-3, 0.5, 4]
   ];
   cratePositions.forEach(([x, y, z]) => {
     const c = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), crateMat);
@@ -283,68 +351,140 @@
     crates.push(c);
   });
 
+  function isInsideCrate(x, z) {
+    for (const c of crates) {
+      if (Math.abs(x - c.position.x) < 0.55 && Math.abs(z - c.position.z) < 0.55) return true;
+    }
+    return false;
+  }
+
   // ---------- Lights ----------
   scene.add(new THREE.AmbientLight(0x2a2a35, 0.6));
 
   const lanternLight = new THREE.PointLight(0xffb35c, 1.6, 9, 2);
-  lanternLight.position.set(0, 1.7, 5.6);
-  lanternLight.castShadow = true;
+  lanternLight.position.set(0, 0.2, 0);
   camera.add(lanternLight);
   scene.add(camera);
 
-  // patrol guard: real 3D character (glTF) with a walking animation + a flashlight
-  const guardGroup = new THREE.Group();
+  // ---------- Pickup items ----------
+  const ITEM_DEFS = [
+    { id: 'tarjeta', name: 'Tarjeta de acceso', color: 0x4fc3f7, position: new THREE.Vector3(-3, 0.95, -1) },
+    { id: 'cizalla', name: 'Cizalla', color: 0xffb74d, position: new THREE.Vector3(1.5, 0.95, -16) }
+  ];
+  const items = ITEM_DEFS.map((def) => {
+    const mesh = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.22, 0),
+      new THREE.MeshStandardMaterial({ color: def.color, emissive: def.color, emissiveIntensity: 0.7, roughness: 0.3 })
+    );
+    mesh.position.copy(def.position);
+    mesh.castShadow = true;
+    scene.add(mesh);
+    const glow = new THREE.PointLight(def.color, 0.9, 3.2);
+    glow.position.copy(def.position);
+    scene.add(glow);
+    return { ...def, mesh, glow, collected: false };
+  });
 
-  // placeholder shown while the model streams in, removed once it loads
+  function nearestUncollectedItem(playerPos, maxDist) {
+    let best = null, bestDist = maxDist;
+    for (const it of items) {
+      if (it.collected) continue;
+      const d = Math.hypot(playerPos.x - it.position.x, playerPos.z - it.position.z);
+      if (d < bestDist) { best = it; bestDist = d; }
+    }
+    return best;
+  }
+
+  function collectItem(it) {
+    it.collected = true;
+    state[it.id === 'tarjeta' ? 'hasTarjeta' : 'hasCizalla'] = true;
+    scene.remove(it.mesh);
+    scene.remove(it.glow);
+    const chip = document.getElementById('inv-' + it.id);
+    if (chip) chip.classList.add('got');
+    updateDoorVisual();
+  }
+
+  // ---------- Guards: real 3D characters (glTF) with walking animation + flashlights ----------
+  const GUARD_DEFS = [
+    { start: new THREE.Vector3(1.8, 0, -5), path: [new THREE.Vector3(2.4, 0, -5), new THREE.Vector3(-2.4, 0, -5)], speed: 0.55 },
+    { start: new THREE.Vector3(-1.8, 0, -12), path: [new THREE.Vector3(-2.4, 0, -12), new THREE.Vector3(2.4, 0, -12)], speed: 0.5 },
+    { start: new THREE.Vector3(1.5, 0, 6), path: [new THREE.Vector3(2.2, 0, 8), new THREE.Vector3(-2.2, 0, 3)], speed: 0.45 }
+  ];
   const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x8a2b2b, roughness: 0.6 });
-  const guardPlaceholder = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.6, 10), placeholderMat);
-  guardPlaceholder.position.y = 0.8;
-  guardGroup.add(guardPlaceholder);
 
-  const flashlight = new THREE.SpotLight(0xfff2c8, 2.2, 12, Math.PI / 7, 0.4, 1.5);
-  flashlight.position.set(0, 1.7, 0.2);
-  const flashTarget = new THREE.Object3D();
-  flashTarget.position.set(0, 1.2, -3);
-  guardGroup.add(flashTarget);
-  flashlight.target = flashTarget;
-  guardGroup.add(flashlight);
+  const guards = GUARD_DEFS.map((def) => {
+    const group = new THREE.Group();
+    group.position.copy(def.start);
+    scene.add(group);
 
-  guardGroup.position.set(1.5, 0, -8);
-  scene.add(guardGroup);
+    const placeholder = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.6, 10), placeholderMat);
+    placeholder.position.y = 0.8;
+    group.add(placeholder);
 
-  let guardMixer = null;
+    const flashlight = new THREE.SpotLight(0xfff2c8, 2.2, 12, Math.PI / 7, 0.4, 1.5);
+    flashlight.position.set(0, 1.7, 0.2);
+    const flashTarget = new THREE.Object3D();
+    flashTarget.position.set(0, 1.2, -3);
+    group.add(flashTarget);
+    flashlight.target = flashTarget;
+    group.add(flashlight);
+
+    return {
+      group, placeholder, path: def.path, t: Math.random() * 6, speed: def.speed,
+      mixer: null, forward: new THREE.Vector3(0, 0, -1)
+    };
+  });
+
   if (typeof THREE.GLTFLoader === 'function') {
     const loader = new THREE.GLTFLoader();
     loader.load(
       'guard-soldier.glb',
       (gltf) => {
-        guardGroup.remove(guardPlaceholder);
-        const model = gltf.scene;
-        model.rotation.y = Math.PI; // face forward along -Z like the placeholder did
-        model.traverse((node) => { if (node.isMesh) node.castShadow = true; });
-        guardGroup.add(model);
-
-        guardMixer = new THREE.AnimationMixer(model);
+        const cloneFn = (window.THREE && THREE.SkeletonUtils && THREE.SkeletonUtils.clone)
+          ? THREE.SkeletonUtils.clone
+          : (obj) => obj.clone();
         const clips = gltf.animations || [];
         const walkClip = clips.find((c) => /walk/i.test(c.name)) || clips[0];
-        if (walkClip) guardMixer.clipAction(walkClip).play();
+
+        guards.forEach((g) => {
+          g.group.remove(g.placeholder);
+          const model = cloneFn(gltf.scene);
+          model.rotation.y = Math.PI;
+          model.traverse((node) => { if (node.isMesh) node.castShadow = true; });
+          g.group.add(model);
+          g.mixer = new THREE.AnimationMixer(model);
+          if (walkClip) g.mixer.clipAction(walkClip).play();
+        });
       },
       undefined,
       (err) => {
-        console.warn('No se pudo cargar el modelo del guardia, se mantiene el reemplazo geométrico.', err);
+        console.warn('No se pudo cargar el modelo de los guardias, se mantiene el reemplazo geométrico.', err);
       }
     );
   }
 
-  let guardT = 0;
-  const guardPath = [
-    new THREE.Vector3(2.5, 0, -8),
-    new THREE.Vector3(-2.5, 0, -8),
-  ];
-  let guardSeg = 0;
+  const VISION_RANGE = 7.5;
+  const VISION_HALF_ANGLE = Math.PI / 6.5;
+
+  function guardSeesPlayer(guardPos, forward, playerPos) {
+    const toPlayer = new THREE.Vector3(playerPos.x - guardPos.x, 0, playerPos.z - guardPos.z);
+    const dist = toPlayer.length();
+    if (dist > VISION_RANGE || dist < 0.001) return false;
+    toPlayer.normalize();
+    const fwd = new THREE.Vector3(forward.x, 0, forward.z).normalize();
+    const angle = Math.acos(THREE.MathUtils.clamp(fwd.dot(toPlayer), -1, 1));
+    if (angle > VISION_HALF_ANGLE) return false;
+    const steps = 10;
+    for (let i = 1; i < steps; i++) {
+      const sx = guardPos.x + (playerPos.x - guardPos.x) * (i / steps);
+      const sz = guardPos.z + (playerPos.z - guardPos.z) * (i / steps);
+      if (isInsideCrate(sx, sz)) return false;
+    }
+    return true;
+  }
 
   // ---------- Movement / look ----------
-  // axisX/axisY: -1..1, merged from keyboard (digital) and joystick (analog)
   const keyAxis = { x: 0, y: 0 };
   let joyAxis = { x: 0, y: 0 };
   let yaw = 0, pitch = 0;
@@ -353,7 +493,7 @@
   const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
   if (isTouchDevice) {
     document.getElementById('controls-hint').innerHTML =
-      '<span class="key">joystick: moverte</span><span class="key">arrastrar: mirar</span>';
+      '<span class="key">joystick: moverte</span><span class="key">arrastrar: mirar</span><span class="key">botón: recoger</span>';
   }
 
   function onKeyDown(e) {
@@ -361,6 +501,7 @@
     if (e.code === 'KeyS' || e.code === 'ArrowDown') keyAxis.y = -1;
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keyAxis.x = -1;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keyAxis.x = 1;
+    if (e.code === 'KeyE') tryInteract();
   }
   function onKeyUp(e) {
     if ((e.code === 'KeyW' || e.code === 'ArrowUp') && keyAxis.y > 0) keyAxis.y = 0;
@@ -373,7 +514,6 @@
 
   const canvasEl = renderer.domElement;
 
-  // ---- Desktop: pointer-lock mouse look ----
   let locked = false;
   function onMouseMove(e) {
     if (!locked) return;
@@ -387,11 +527,10 @@
   });
   if (!isTouchDevice) {
     canvasEl.addEventListener('click', () => {
-      if (overlay.classList.contains('hidden')) canvasEl.requestPointerLock();
+      if (overlay.classList.contains('hidden') && !state.gameOver && !state.won) canvasEl.requestPointerLock();
     });
   }
 
-  // ---- Mobile: virtual joystick (move) + drag zone (look) ----
   const touchControls = document.getElementById('touch-controls');
   const joystickZone = document.getElementById('joystick-zone');
   const joystickBase = document.getElementById('joystick-base');
@@ -460,50 +599,109 @@
     }
   }, { passive: true });
 
+  // ---------- Interact ----------
+  const PICKUP_RADIUS = 1.4;
+  function tryInteract() {
+    if (state.gameOver || state.won) return;
+    const it = nearestUncollectedItem(camera.position, PICKUP_RADIUS);
+    if (it) collectItem(it);
+  }
+  interactPrompt.addEventListener('click', tryInteract);
+  interactPrompt.addEventListener('touchstart', (e) => { e.preventDefault(); tryInteract(); }, { passive: false });
+
+  // ---------- Collision ----------
   function checkCollision(nextPos) {
     const margin = 0.4;
     if (nextPos.x < -ROOM_W / 2 + margin || nextPos.x > ROOM_W / 2 - margin) return true;
-    if (nextPos.z < -ROOM_D / 2 + margin || nextPos.z > ROOM_D / 2 - margin) return true;
-    for (const c of crates) {
-      if (Math.abs(nextPos.x - c.position.x) < 0.7 && Math.abs(nextPos.z - c.position.z) < 0.7) return true;
-    }
+    if (nextPos.z < -ROOM_D / 2 + margin) return true;
+    if (nextPos.z > ROOM_D / 2 - margin && !allItemsCollected()) return true;
+    if (isInsideCrate(nextPos.x, nextPos.z)) return true;
     return false;
   }
+
+  // ---------- Win / lose ----------
+  function triggerGameOver() {
+    if (state.gameOver || state.won) return;
+    state.gameOver = true;
+    document.exitPointerLock && document.exitPointerLock();
+    endTitle.textContent = 'Te descubrieron';
+    endTitle.className = 'lose';
+    endText.textContent = 'La luz de un guardia te encontró. El depósito entra en alerta y no llegás a la salida.';
+    endScreen.classList.add('active');
+  }
+  function triggerWin() {
+    if (state.gameOver || state.won) return;
+    state.won = true;
+    document.exitPointerLock && document.exitPointerLock();
+    endTitle.textContent = 'Escapaste con el cargamento';
+    endTitle.className = 'win';
+    endText.textContent = 'Salís del depósito con la tarjeta de acceso y la cizalla, sin que ningún guardia te viera.';
+    endScreen.classList.add('active');
+  }
+  document.getElementById('end-restart').addEventListener('click', () => location.reload());
+
+  // ---------- Main loop ----------
+  camera.position.copy(START_POS);
 
   function animate() {
     requestAnimationFrame(animate);
     const dt = Math.min(clock.getDelta(), 0.05);
 
-    camera.rotation.order = 'YXZ';
-    camera.rotation.y = yaw;
-    camera.rotation.x = pitch;
+    if (!state.gameOver && !state.won) {
+      camera.rotation.order = 'YXZ';
+      camera.rotation.y = yaw;
+      camera.rotation.x = pitch;
 
-    const speed = 3.4;
-    const axisX = Math.max(-1, Math.min(1, keyAxis.x + joyAxis.x));
-    const axisY = Math.max(-1, Math.min(1, keyAxis.y + joyAxis.y));
+      const speed = 3.4;
+      const axisX = Math.max(-1, Math.min(1, keyAxis.x + joyAxis.x));
+      const axisY = Math.max(-1, Math.min(1, keyAxis.y + joyAxis.y));
 
-    if (axisX !== 0 || axisY !== 0) {
-      const fwd = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
-      const right = new THREE.Vector3(Math.sin(yaw + Math.PI / 2), 0, Math.cos(yaw + Math.PI / 2));
-      const dir = new THREE.Vector3();
-      dir.sub(fwd.multiplyScalar(axisY));
-      dir.add(right.multiplyScalar(axisX));
-      const mag = Math.min(1, Math.hypot(axisX, axisY));
-      if (dir.lengthSq() > 0) dir.normalize().multiplyScalar(speed * dt * mag);
-      const next = camera.position.clone().add(dir);
-      if (!checkCollision(next)) camera.position.copy(next);
+      if (axisX !== 0 || axisY !== 0) {
+        const fwd = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+        const right = new THREE.Vector3(Math.sin(yaw + Math.PI / 2), 0, Math.cos(yaw + Math.PI / 2));
+        const dir = new THREE.Vector3();
+        dir.sub(fwd.multiplyScalar(axisY));
+        dir.add(right.multiplyScalar(axisX));
+        const mag = Math.min(1, Math.hypot(axisX, axisY));
+        if (dir.lengthSq() > 0) dir.normalize().multiplyScalar(speed * dt * mag);
+        const next = camera.position.clone().add(dir);
+        if (!checkCollision(next)) camera.position.copy(next);
+      }
+
+      if (camera.position.z > ROOM_D / 2 + 1.2 && allItemsCollected()) triggerWin();
+
+      // items: gentle rotation + pickup prompt
+      items.forEach((it) => { if (!it.collected) it.mesh.rotation.y += dt * 1.6; });
+      const nearItem = nearestUncollectedItem(camera.position, PICKUP_RADIUS);
+      if (nearItem) {
+        interactPrompt.innerHTML = isTouchDevice
+          ? 'Tocá para recoger <b>' + nearItem.name + '</b>'
+          : 'Presioná <b>E</b> para recoger ' + nearItem.name;
+        interactPrompt.classList.add('visible');
+      } else {
+        interactPrompt.classList.remove('visible');
+      }
+
+      // guards: patrol + detection
+      let spotted = false;
+      guards.forEach((g) => {
+        g.t += dt * g.speed;
+        const a = g.path[0], b = g.path[1];
+        const s = (Math.sin(g.t) + 1) / 2;
+        g.group.position.lerpVectors(a, b, s);
+        const towardB = Math.cos(g.t) >= 0;
+        const heading = towardB ? b : a;
+        const dir = new THREE.Vector3(heading.x - g.group.position.x, 0, heading.z - g.group.position.z);
+        if (dir.lengthSq() > 0.0001) {
+          dir.normalize();
+          g.forward.copy(dir);
+          g.group.lookAt(g.group.position.x + dir.x, g.group.position.y, g.group.position.z + dir.z);
+        }
+        if (g.mixer) g.mixer.update(dt);
+        if (guardSeesPlayer(g.group.position, g.forward, camera.position)) spotted = true;
+      });
+      if (spotted) triggerGameOver();
     }
-
-    // guard patrol
-    guardT += dt * 0.6;
-    const a = guardPath[guardSeg];
-    const b = guardPath[(guardSeg + 1) % guardPath.length];
-    const t = (Math.sin(guardT) + 1) / 2;
-    guardGroup.position.lerpVectors(a, b, t);
-    const heading = Math.cos(guardT) >= 0 ? b : a;
-    guardGroup.lookAt(heading.x, 0, heading.z);
-
-    if (guardMixer) guardMixer.update(dt);
 
     renderer.render(scene, camera);
   }
@@ -514,7 +712,7 @@
     hud.hidden = false;
     if (isTouchDevice) {
       touchControls.classList.add('active');
-      note.textContent = 'Joystick para moverte · arrastrá la pantalla para mirar';
+      note.textContent = 'Joystick para moverte · arrastrá para mirar · tocá el aviso para recoger';
       note.hidden = false;
     } else {
       crosshair.hidden = false;
@@ -522,7 +720,7 @@
       canvasEl.requestPointerLock();
     }
   });
-  } // end runDemo
+  } // end runGame
 })();
 
 // ---------- PWA install ----------
